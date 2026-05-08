@@ -83,7 +83,7 @@ export async function PATCH(
     });
     await recordAudit({
       companyId: tx.companyId,
-      actorType: role,
+      actorType: role as "employee" | "merchant" | "admin",
       actorId: session.user.id,
       action: "delete_transaction",
       targetType: "transaction",
