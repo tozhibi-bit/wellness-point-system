@@ -1,0 +1,299 @@
+// ============================================================
+// Wellness Point System — Prisma Schema
+// Phase 2 成果物: DB設計
+// ============================================================
+// 想定環境: PostgreSQL 16+ / Prisma 5.x
+// マルチテナント方式: Shared DB / Shared Schema (company_id分離)
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// 1. COMPANY — テナント(利用企業)
+// ============================================================
+model Company {
+  id            String    @id @default(cuid()) // ULID推奨だがPrisma標準のcuidで代替可
+  displayId     String    @unique @map("display_id") // C001 等
+  name          String
+  monthlyPoints Int       @default(5) @map("monthly_points") // 月次付与pt(可変)
+  invoiceEmail  String?   @map("invoice_email")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  deletedAt     DateTime? @map("deleted_at")
+
+  employees           Employee[]
+  adminUsers          AdminUser[]
+  merchantContracts   MerchantContract[]
+  monthlyPointGrants  MonthlyPointGrant[]
+  transactions        Transaction[]
+  invoices            Invoice[]
+  auditLogs           AuditLog[]
+
+  @@index([deletedAt])
+  @@map("companies")
+}
+
+// ============================================================
+// 2. EMPLOYEE — 従業員
+// ============================================================
+model Employee {
+  id             String    @id @default(cuid())
+  companyId      String    @map("company_id")
+  displayId      String    @map("display_id") // E0001 等
+  name           String
+  email          String    @unique // 全社横断ユニーク
+  passwordHash   String    @map("password_hash")
+  department     String?
+  isActive       Boolean   @default(true) @map("is_active")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  deletedAt      DateTime? @map("deleted_at")
+
+  company             Company             @relation(fields: [companyId], references: [id])
+  monthlyPointGrants  MonthlyPointGrant[]
+  transactions        Transaction[]
+
+  @@unique([companyId, displayId]) // 会社内でID一意
+  @@index([companyId, isActive])
+  @@index([email])
+  @@map("employees")
+}
+
+// ============================================================
+// 3. ADMIN_USER — 管理者
+// ============================================================
+model AdminUser {
+  id            String   @id @default(cuid())
+  companyId     String   @map("company_id")
+  email         String   @unique
+  passwordHash  String   @map("password_hash")
+  name          String
+  role          AdminRole @default(viewer)
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  company Company @relation(fields: [companyId], references: [id])
+
+  @@index([companyId])
+  @@map("admin_users")
+}
+
+enum AdminRole {
+  owner   // 全権限
+  viewer  // 閲覧のみ
+}
+
+// ============================================================
+// 3-2. SUPER_ADMIN — サービス提供者(全企業横断)
+// ============================================================
+model SuperAdmin {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  passwordHash  String   @map("password_hash")
+  name          String
+  createdAt     DateTime @default(now()) @map("created_at")
+  deletedAt     DateTime? @map("deleted_at")
+
+  @@map("super_admins")
+}
+
+// ============================================================
+// 4. MERCHANT — 加盟店(1店舗1アカウント)
+// ============================================================
+model Merchant {
+  id             String    @id @default(cuid())
+  displayId      String    @unique @map("display_id") // M001 等
+  name           String
+  email          String    @unique // ログイン用
+  passwordHash   String    @map("password_hash")
+  category       String    // ジム/ゴルフ練習場/マッサージ等
+  address        String?
+  websiteUrl     String    @map("website_url") // 店舗HP・予約ページURL(必須)
+  invoiceRegNo   String    @map("invoice_reg_no") // 適格請求書登録番号 T+13桁
+  isActive       Boolean   @default(true) @map("is_active")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  deletedAt      DateTime? @map("deleted_at")
+
+  contracts    MerchantContract[]
+  services     Service[]
+  transactions Transaction[]
+  invoices     Invoice[]
+
+  @@index([isActive, deletedAt])
+  @@map("merchants")
+}
+
+// ============================================================
+// 5. MERCHANT_CONTRACT — 会社と加盟店の契約関係
+// ============================================================
+model MerchantContract {
+  id         String    @id @default(cuid())
+  companyId  String    @map("company_id")
+  merchantId String    @map("merchant_id")
+  startDate  DateTime  @map("start_date") @db.Date
+  endDate    DateTime? @map("end_date") @db.Date // NULL = 継続中
+  isActive   Boolean   @default(true) @map("is_active")
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  company  Company  @relation(fields: [companyId], references: [id])
+  merchant Merchant @relation(fields: [merchantId], references: [id])
+
+  @@unique([companyId, merchantId, startDate])
+  @@index([companyId, isActive])
+  @@index([merchantId, isActive])
+  @@map("merchant_contracts")
+}
+
+// ============================================================
+// 6. SERVICE — 加盟店のサービスメニュー
+// ============================================================
+model Service {
+  id          String    @id @default(cuid())
+  merchantId  String    @map("merchant_id")
+  name        String
+  description String?   @db.Text
+  priceYen    Int       @map("price_yen") // 税込円(整数)
+  isActive    Boolean   @default(true) @map("is_active")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  merchant     Merchant      @relation(fields: [merchantId], references: [id])
+  transactions Transaction[]
+
+  @@index([merchantId, isActive])
+  @@map("services")
+}
+
+// ============================================================
+// 7. MONTHLY_POINT_GRANT — 月次ポイント付与履歴
+// ============================================================
+// 月初バッチで全アクティブ従業員に1レコード作成
+// (employee_id, year_month) でユニーク制約 → 冪等性確保
+model MonthlyPointGrant {
+  id              String   @id @default(cuid())
+  employeeId      String   @map("employee_id")
+  companyId       String   @map("company_id") // 認可フィルタ用に冗長保持
+  yearMonth       String   @map("year_month") // "2026-04" 形式
+  grantedPoints   Int      @map("granted_points")
+  usedPoints      Int      @default(0) @map("used_points") // キャッシュ列(集計時更新)
+  grantedAt       DateTime @default(now()) @map("granted_at")
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+  company  Company  @relation(fields: [companyId], references: [id])
+
+  @@unique([employeeId, yearMonth])
+  @@index([companyId, yearMonth])
+  @@map("monthly_point_grants")
+}
+
+// ============================================================
+// 8. TRANSACTION — 利用実績(システムの中核)
+// ============================================================
+model Transaction {
+  id                String              @id @default(cuid())
+  displayId         String              @unique @map("display_id") // T00001
+  companyId         String              @map("company_id")  // 認可用
+  employeeId        String              @map("employee_id")
+  merchantId        String              @map("merchant_id")
+  serviceId         String              @map("service_id")
+  serviceAmountYen  Int                 @map("service_amount_yen") // 取引時の金額(スナップショット)
+  pointsUsed        Int                 @map("points_used")
+  ownPaymentYen     Int                 @map("own_payment_yen")
+  usedDate          DateTime            @map("used_date") @db.Date
+  status            TransactionStatus   @default(pending_usage)
+  createdBy         TransactionCreator
+  invoiceId         String?             @map("invoice_id")
+  createdAt         DateTime            @default(now()) @map("created_at")
+  updatedAt         DateTime            @updatedAt @map("updated_at")
+
+  company  Company  @relation(fields: [companyId], references: [id])
+  employee Employee @relation(fields: [employeeId], references: [id])
+  merchant Merchant @relation(fields: [merchantId], references: [id])
+  service  Service  @relation(fields: [serviceId], references: [id])
+  invoice  Invoice? @relation(fields: [invoiceId], references: [id])
+
+  @@index([companyId, employeeId, usedDate(sort: Desc)])
+  @@index([merchantId, usedDate(sort: Desc)])
+  @@index([companyId, status])
+  @@index([invoiceId])
+  @@map("transactions")
+}
+
+enum TransactionStatus {
+  pending_usage      // 事前申請中
+  pending_approval   // 店舗確認待ち
+  confirmed          // 確定
+  invoiced           // 請求書発行済
+  cancelled          // キャンセル
+}
+
+enum TransactionCreator {
+  employee  // 従業員が事前申請
+  merchant  // 加盟店が事後入力
+}
+
+// ============================================================
+// 9. INVOICE — 請求書(インボイス制度対応)
+// ============================================================
+model Invoice {
+  id           String        @id @default(cuid())
+  displayId    String        @unique @map("display_id") // INV-202604-M001
+  companyId    String        @map("company_id")
+  merchantId   String        @map("merchant_id")
+  yearMonth    String        @map("year_month")
+  totalPoints  Int           @map("total_points")
+  subtotalYen  Int           @map("subtotal_yen") // 税抜
+  taxYen       Int           @map("tax_yen")      // 消費税(10%)
+  totalYen     Int           @map("total_yen")    // 税込合計
+  pdfUrl       String?       @map("pdf_url")      // S3等のパス
+  status       InvoiceStatus @default(draft)
+  issuedAt     DateTime?     @map("issued_at")
+  dueDate      DateTime?     @map("due_date") @db.Date
+  createdAt    DateTime      @default(now()) @map("created_at")
+
+  company      Company       @relation(fields: [companyId], references: [id])
+  merchant     Merchant      @relation(fields: [merchantId], references: [id])
+  transactions Transaction[]
+
+  @@unique([companyId, merchantId, yearMonth]) // 同月同店舗で重複発行防止
+  @@index([companyId, status])
+  @@map("invoices")
+}
+
+enum InvoiceStatus {
+  draft   // 下書き
+  issued  // 発行済
+  paid    // 支払済
+}
+
+// ============================================================
+// 10. AUDIT_LOG — 監査ログ(変更操作のみ)
+// ============================================================
+// 記録対象の操作:
+// - create_* / update_* / delete_* 系すべて
+// - login_success / login_failed (セキュリティ目的の例外)
+// - run_monthly_grant_batch
+// 記録しない操作:
+// - view_* 系すべて(コスト削減)
+model AuditLog {
+  id         String   @id @default(cuid())
+  companyId  String   @map("company_id")
+  actorType  String   @map("actor_type") // admin / employee / merchant / system
+  actorId    String   @map("actor_id")
+  action     String   // create_transaction / update_service / login_success 等
+  targetType String?  @map("target_type") // transaction / service 等
+  targetId   String?  @map("target_id")
+  metadata   Json?    // IPアドレス、User-Agent、変更前後の値等
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  company Company @relation(fields: [companyId], references: [id])
+
+  @@index([companyId, createdAt(sort: Desc)])
+  @@index([actorType, actorId, createdAt(sort: Desc)])
+  @@index([targetType, targetId])
+  @@map("audit_logs")
+}

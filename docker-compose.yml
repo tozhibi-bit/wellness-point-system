@@ -1,0 +1,23 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: wellness-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: wellness
+      POSTGRES_PASSWORD: wellness
+      POSTGRES_DB: wellness_point
+    ports:
+      - "5432:5432"
+    volumes:
+      - wellness_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wellness -d wellness_point"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  wellness_pg_data:

@@ -1,0 +1,350 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+
+interface Merchant {
+  id: string;
+  displayId: string;
+  name: string;
+  email: string;
+  category: string;
+  address: string;
+  websiteUrl: string;
+  invoiceRegNo: string;
+  isActive: boolean;
+  contractCount: number;
+  serviceCount: number;
+}
+
+export default function MerchantManager({ initialMerchants }: { initialMerchants: Merchant[] }) {
+  const router = useRouter();
+  const [merchants, setMerchants] = useState<Merchant[]>(initialMerchants);
+  const [editingId, setEditingId] = useState<string | "new" | null>(null);
+  const [form, setForm] = useState({
+    displayId: "",
+    name: "",
+    email: "",
+    category: "",
+    address: "",
+    websiteUrl: "",
+    invoiceRegNo: "",
+    password: "demo1234",
+  });
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  function openNew() {
+    const nextId = nextDisplayId(merchants.map((m) => m.displayId));
+    setForm({
+      displayId: nextId,
+      name: "",
+      email: "",
+      category: "",
+      address: "",
+      websiteUrl: "",
+      invoiceRegNo: "",
+      password: "demo1234",
+    });
+    setEditingId("new");
+    setError(null);
+  }
+
+  function openEdit(m: Merchant) {
+    setForm({
+      displayId: m.displayId,
+      name: m.name,
+      email: m.email,
+      category: m.category,
+      address: m.address,
+      websiteUrl: m.websiteUrl,
+      invoiceRegNo: m.invoiceRegNo,
+      password: "",
+    });
+    setEditingId(m.id);
+    setError(null);
+  }
+
+  async function save() {
+    setError(null);
+    if (!form.name.trim() || !form.email.trim() || !form.category.trim() || !form.websiteUrl.trim() || !form.invoiceRegNo.trim()) {
+      setError("店舗名・メール・カテゴリ・URL・登録番号は必須です");
+      return;
+    }
+    if (editingId === "new" && form.password.length < 8) {
+      setError("初期パスワードは8文字以上で指定してください");
+      return;
+    }
+    setSaving(true);
+    try {
+      const isNew = editingId === "new";
+      const url = isNew ? "/api/superadmin/merchants" : `/api/superadmin/merchants/${editingId}`;
+      const res = await fetch(url, {
+        method: isNew ? "POST" : "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      const j = await res.json();
+      if (!res.ok) {
+        setError(j.error ?? "保存に失敗しました");
+        return;
+      }
+      setEditingId(null);
+      router.refresh();
+      if (j.merchant) {
+        const newMerchant: Merchant = {
+          id: j.merchant.id,
+          displayId: j.merchant.displayId,
+          name: j.merchant.name,
+          email: j.merchant.email,
+          category: j.merchant.category,
+          address: j.merchant.address ?? "",
+          websiteUrl: j.merchant.websiteUrl,
+          invoiceRegNo: j.merchant.invoiceRegNo,
+          isActive: j.merchant.isActive,
+          contractCount: isNew ? j.contractCount ?? 0 : merchants.find((m) => m.id === editingId)?.contractCount ?? 0,
+          serviceCount: isNew ? 0 : merchants.find((m) => m.id === editingId)?.serviceCount ?? 0,
+        };
+        if (isNew) {
+          setMerchants([...merchants, newMerchant]);
+        } else {
+          setMerchants(merchants.map((m) => (m.id === editingId ? newMerchant : m)));
+        }
+      }
+    } catch {
+      setError("通信エラー");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+        <div style={{ fontSize: 13, color: "var(--ink-soft)" }}>
+          現在 {merchants.length} 店舗が登録されています(全社共通)
+        </div>
+        <button onClick={openNew} style={btnAccentStyle}>
+          + 新規加盟店を追加
+        </button>
+      </div>
+
+      {editingId !== null && (
+        <div style={editPanelStyle}>
+          <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 16, fontWeight: 700, marginBottom: 14 }}>
+            {editingId === "new" ? "加盟店を新規追加" : "加盟店情報を編集"}
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: 14 }}>
+            <Field label="加盟店ID(M001等)" required>
+              <input
+                type="text"
+                value={form.displayId}
+                onChange={(e) => setForm({ ...form, displayId: e.target.value.toUpperCase() })}
+                style={inputStyle}
+                disabled={editingId !== "new"}
+              />
+            </Field>
+            <Field label="店舗名" required>
+              <input
+                type="text"
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                style={inputStyle}
+                placeholder="◯◯フィットネス 大阪店"
+              />
+            </Field>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginTop: 14 }}>
+            <Field label="メールアドレス(ログイン用)" required>
+              <input
+                type="email"
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                style={inputStyle}
+                placeholder="info@example.jp"
+              />
+            </Field>
+            <Field label="カテゴリ" required>
+              <input
+                type="text"
+                value={form.category}
+                onChange={(e) => setForm({ ...form, category: e.target.value })}
+                style={inputStyle}
+                placeholder="ジム / マッサージ / 整体..."
+              />
+            </Field>
+          </div>
+          <div style={{ marginTop: 14 }}>
+            <Field label="店舗HP・予約サイトURL" required>
+              <input
+                type="url"
+                value={form.websiteUrl}
+                onChange={(e) => setForm({ ...form, websiteUrl: e.target.value })}
+                style={inputStyle}
+                placeholder="https://..."
+              />
+            </Field>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 14, marginTop: 14 }}>
+            <Field label="住所">
+              <input
+                type="text"
+                value={form.address}
+                onChange={(e) => setForm({ ...form, address: e.target.value })}
+                style={inputStyle}
+                placeholder="大阪市北区..."
+              />
+            </Field>
+            <Field label="適格請求書登録番号" required>
+              <input
+                type="text"
+                value={form.invoiceRegNo}
+                onChange={(e) => setForm({ ...form, invoiceRegNo: e.target.value })}
+                style={inputStyle}
+                placeholder="T1234567890123"
+              />
+            </Field>
+          </div>
+          {editingId === "new" && (
+            <div style={{ marginTop: 14 }}>
+              <Field label="初期パスワード(8文字以上)" required>
+                <input
+                  type="text"
+                  value={form.password}
+                  onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  style={inputStyle}
+                />
+              </Field>
+              <div style={{ fontSize: 11, color: "var(--ink-mute)", marginTop: 6 }}>
+                ※ 新規追加時、登録済みの全企業と自動的に契約を結びます。
+              </div>
+            </div>
+          )}
+          {error && <div style={errorStyle}>{error}</div>}
+          <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 14 }}>
+            <button onClick={() => setEditingId(null)} style={btnGhostStyle}>
+              キャンセル
+            </button>
+            <button onClick={save} disabled={saving} style={btnAccentStyle}>
+              {saving ? "保存中..." : "保存"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+        <thead>
+          <tr>
+            <th style={thStyle}>ID</th>
+            <th style={thStyle}>店舗名</th>
+            <th style={thStyle}>カテゴリ</th>
+            <th style={thStyle}>登録番号</th>
+            <th style={{ ...thStyle, textAlign: "right" }}>契約社数</th>
+            <th style={{ ...thStyle, textAlign: "right" }}>サービス数</th>
+            <th style={thStyle}></th>
+          </tr>
+        </thead>
+        <tbody>
+          {merchants.map((m) => (
+            <tr key={m.id}>
+              <td style={{ ...tdStyle, fontFamily: "monospace" }}>{m.displayId}</td>
+              <td style={{ ...tdStyle, fontWeight: 500 }}>{m.name}</td>
+              <td style={tdStyle}>{m.category}</td>
+              <td style={{ ...tdStyle, fontFamily: "monospace", fontSize: 11 }}>{m.invoiceRegNo}</td>
+              <td style={{ ...tdStyle, textAlign: "right", fontFamily: "monospace" }}>{m.contractCount}社</td>
+              <td style={{ ...tdStyle, textAlign: "right", fontFamily: "monospace" }}>{m.serviceCount}件</td>
+              <td style={tdStyle}>
+                <button onClick={() => openEdit(m)} style={btnGhostSmStyle}>
+                  編集
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
+  return (
+    <div>
+      <label style={{ display: "block", fontSize: 11, color: "var(--ink-soft)", marginBottom: 4, fontWeight: 500 }}>
+        {label}
+        {required && <span style={{ color: "var(--accent)", marginLeft: 4 }}>*</span>}
+      </label>
+      {children}
+    </div>
+  );
+}
+
+function nextDisplayId(existing: string[]): string {
+  const nums = existing
+    .filter((id) => /^M\d+$/.test(id))
+    .map((id) => parseInt(id.slice(1), 10));
+  const max = nums.length > 0 ? Math.max(...nums) : 0;
+  return `M${String(max + 1).padStart(3, "0")}`;
+}
+
+const inputStyle: React.CSSProperties = {
+  width: "100%",
+  padding: "9px 12px",
+  border: "1px solid var(--line-strong)",
+  background: "#fff",
+  fontFamily: "inherit",
+  fontSize: 13,
+  borderRadius: 4,
+};
+const editPanelStyle: React.CSSProperties = {
+  background: "var(--bg)",
+  border: "1px solid var(--line)",
+  borderLeft: "3px solid var(--accent)",
+  padding: 20,
+  marginBottom: 20,
+  borderRadius: 4,
+};
+const btnAccentStyle: React.CSSProperties = {
+  background: "var(--accent)",
+  color: "#fbfaf6",
+  border: "none",
+  padding: "8px 16px",
+  fontSize: 13,
+  fontWeight: 500,
+  cursor: "pointer",
+  borderRadius: 4,
+  fontFamily: "inherit",
+};
+const btnGhostStyle: React.CSSProperties = {
+  background: "transparent",
+  color: "var(--ink)",
+  border: "1px solid var(--line-strong)",
+  padding: "8px 16px",
+  fontSize: 13,
+  cursor: "pointer",
+  borderRadius: 4,
+  fontFamily: "inherit",
+};
+const btnGhostSmStyle: React.CSSProperties = { ...btnGhostStyle, padding: "4px 10px", fontSize: 11 };
+const errorStyle: React.CSSProperties = {
+  background: "#fcebeb",
+  border: "1px solid #f7c1c1",
+  color: "#791f1f",
+  padding: "10px 14px",
+  fontSize: 12,
+  marginTop: 12,
+  borderRadius: 4,
+};
+const thStyle: React.CSSProperties = {
+  textAlign: "left",
+  padding: "10px 12px",
+  fontSize: 11,
+  letterSpacing: "0.1em",
+  color: "var(--ink-mute)",
+  textTransform: "uppercase",
+  borderBottom: "1px solid var(--line-strong)",
+  fontWeight: 500,
+};
+const tdStyle: React.CSSProperties = {
+  padding: "10px 12px",
+  borderBottom: "1px solid var(--line)",
+};
