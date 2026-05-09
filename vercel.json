@@ -1,8 +1,6 @@
 {
-  "buildCommand": "npm run build",
+  "buildCommand": "prisma generate && prisma migrate deploy && next build",
+  "installCommand": "npm install",
   "framework": "nextjs",
-  "regions": ["hnd1"],
-  "env": {
-    "NODE_ENV": "production"
-  }
+  "regions": ["hnd1"]
 }
