@@ -156,7 +156,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        const u = user as typeof user & {
+        const u = user as {
           id: string;
           role: "employee" | "merchant" | "admin" | "superadmin";
           companyId: string | null;
@@ -173,11 +173,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
     async session({ session, token }) {
       if (token && session.user) {
-        session.user.id = token.id;
-        session.user.role = token.role;
-        session.user.companyId = token.companyId;
-        session.user.merchantId = token.merchantId;
-        session.user.displayId = token.displayId;
+        session.user.id = token.id as string;
+        session.user.role = token.role as "employee" | "merchant" | "admin" | "superadmin";
+        session.user.companyId = token.companyId as string | null;
+        session.user.merchantId = token.merchantId as string | null;
+        session.user.displayId = token.displayId as string;
       }
       return session;
     },
