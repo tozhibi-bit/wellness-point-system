@@ -33,11 +33,11 @@ const nextConfig = {
             key: "Permissions-Policy",
             value: "camera=(), microphone=(), geolocation=(), interest-cohort=()",
           },
-          // HTTPS強制(本番でHTTPS使う場合のみ有効)
-          // {
-          //   key: "Strict-Transport-Security",
-          //   value: "max-age=63072000; includeSubDomains; preload",
-          // },
+          // HTTPS強制 (Vercel は常に HTTPS のため有効化)
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=63072000; includeSubDomains; preload",
+          },
         ],
       },
     ];
