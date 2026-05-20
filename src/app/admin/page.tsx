@@ -8,23 +8,44 @@ import {
   getRemainingPoints,
 } from "@/lib/server/queries";
 import AppHeader from "@/components/shared/app-header";
+import MonthNav from "@/components/shared/month-nav";
 import { styles, badgeStyles, STATUS_LABELS } from "@/components/shared/styles";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminPage() {
+function resolveYearMonth(ym?: string): string {
+  const current = getCurrentYearMonth();
+  if (!ym || !/^\d{4}-\d{2}$/.test(ym)) return current;
+  return ym > current ? current : ym;
+}
+
+function monthAfter(yearMonth: string): Date {
+  const [year, month] = yearMonth.split("-").map(Number);
+  return new Date(year, month, 1);
+}
+
+export default async function AdminPage({
+  searchParams,
+}: {
+  searchParams: { ym?: string };
+}) {
   const session = await requireAdmin();
-  const yearMonth = getCurrentYearMonth();
+  const currentYearMonth = getCurrentYearMonth();
+  const yearMonth = resolveYearMonth(searchParams.ym);
+  const isCurrentMonth = yearMonth === currentYearMonth;
 
   const company = await prisma.company.findUniqueOrThrow({ where: { id: session.user.companyId } });
   const employees = await getCompanyEmployees(session.user.companyId);
 
-  await Promise.all(
-    employees
-      .filter((e) => e.isActive)
-      .map((e) => ensureMonthlyGrant(e.id, e.companyId, yearMonth))
-  );
+  // 当月のみポイント付与を保証（過去月は付与しない）
+  if (isCurrentMonth) {
+    await Promise.all(
+      employees
+        .filter((e) => e.isActive)
+        .map((e) => ensureMonthlyGrant(e.id, e.companyId, yearMonth))
+    );
+  }
 
   const employeeStats = await Promise.all(
     employees.map(async (e) => {
@@ -82,8 +103,6 @@ export default async function AdminPage() {
     })
   );
 
-  const allTxWithRecent = await getCompanyTransactionsByMonth(session.user.companyId, yearMonth);
-
   return (
     <div style={{ minHeight: "100vh" }}>
       <AppHeader
@@ -97,13 +116,33 @@ export default async function AdminPage() {
             <div style={styles.pageTitle}>管理ダッシュボード</div>
             <div style={styles.pageSub}>{company.name} / 福利厚生ポイント管理</div>
           </div>
-          <div style={styles.periodLabel}>{yearMonth} 期間</div>
+          <MonthNav
+            yearMonth={yearMonth}
+            basePath="/admin"
+            currentYearMonth={currentYearMonth}
+          />
         </div>
+
+        {!isCurrentMonth && (
+          <div
+            style={{
+              marginBottom: 20,
+              padding: "10px 16px",
+              background: "#fff9e6",
+              border: "1px solid #e8d59a",
+              borderLeft: "3px solid var(--gold)",
+              fontSize: 12,
+              color: "#7a6010",
+            }}
+          >
+            過去の期間 ({yearMonth}) を表示中です。データは読み取り専用です。
+          </div>
+        )}
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 28 }}>
           <SummaryBox label="従業員数" value={`${employees.filter((e) => e.isActive).length}`} unit="名" />
           <SummaryBox
-            label="今月の総利用ポイント"
+            label="総利用ポイント"
             value={`${totalPoints}`}
             unit={`/ ${totalBudget} pt`}
             sub={`利用率 ${utilization}%`}
@@ -194,51 +233,50 @@ export default async function AdminPage() {
         <div style={styles.card}>
           <div style={styles.cardTitle}>
             <span>全利用明細</span>
-            <span style={styles.cardTitleSub}>{yearMonth} · {allTxWithRecent.length} RECORDS</span>
+            <span style={styles.cardTitleSub}>{yearMonth} · {allTx.length} RECORDS</span>
           </div>
           <div style={{ maxHeight: 480, overflowY: "auto" }}>
-            <table style={styles.table}>
-              <thead>
-                <tr>
-                  <th style={styles.tableTh}>日付</th>
-                  <th style={styles.tableTh}>ID</th>
-                  <th style={styles.tableTh}>従業員</th>
-                  <th style={styles.tableTh}>加盟店</th>
-                  <th style={styles.tableTh}>サービス</th>
-                  <th style={{ ...styles.tableTh, textAlign: "right" }}>pt</th>
-                  <th style={{ ...styles.tableTh, textAlign: "right" }}>自己負担</th>
-                  <th style={styles.tableTh}>状態</th>
-                </tr>
-              </thead>
-              <tbody>
-                {allTxWithRecent.map((t) => (
-                  <tr key={t.id}>
-                    <td style={{ ...styles.tableTd, ...styles.monoCell }}>
-                      {t.usedDate.toISOString().slice(0, 10)}
-                    </td>
-                    <td style={{ ...styles.tableTd, ...styles.monoCell }}>{t.displayId}</td>
-                    <td style={{ ...styles.tableTd, fontSize: 12 }}>{t.employee.name}</td>
-                    <td style={{ ...styles.tableTd, fontSize: 12 }}>{t.merchant.name}</td>
-                    <td style={{ ...styles.tableTd, fontSize: 12 }}>{t.service.name}</td>
-                    <td style={{ ...styles.tableTd, ...styles.amountCell }}>{t.pointsUsed}</td>
-                    <td style={{ ...styles.tableTd, ...styles.amountCell }}>{yen(t.ownPaymentYen)}</td>
-                    <td style={styles.tableTd}>
-                      <span style={badgeStyles[t.status]}>{STATUS_LABELS[t.status]}</span>
-                    </td>
+            {allTx.length === 0 ? (
+              <div style={styles.empty}>{yearMonth} の明細はありません</div>
+            ) : (
+              <table style={styles.table}>
+                <thead>
+                  <tr>
+                    <th style={styles.tableTh}>日付</th>
+                    <th style={styles.tableTh}>ID</th>
+                    <th style={styles.tableTh}>従業員</th>
+                    <th style={styles.tableTh}>加盟店</th>
+                    <th style={styles.tableTh}>サービス</th>
+                    <th style={{ ...styles.tableTh, textAlign: "right" }}>pt</th>
+                    <th style={{ ...styles.tableTh, textAlign: "right" }}>自己負担</th>
+                    <th style={styles.tableTh}>状態</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {allTx.map((t) => (
+                    <tr key={t.id}>
+                      <td style={{ ...styles.tableTd, ...styles.monoCell }}>
+                        {t.usedDate.toISOString().slice(0, 10)}
+                      </td>
+                      <td style={{ ...styles.tableTd, ...styles.monoCell }}>{t.displayId}</td>
+                      <td style={{ ...styles.tableTd, fontSize: 12 }}>{t.employee.name}</td>
+                      <td style={{ ...styles.tableTd, fontSize: 12 }}>{t.merchant.name}</td>
+                      <td style={{ ...styles.tableTd, fontSize: 12 }}>{t.service.name}</td>
+                      <td style={{ ...styles.tableTd, ...styles.amountCell }}>{t.pointsUsed}</td>
+                      <td style={{ ...styles.tableTd, ...styles.amountCell }}>{yen(t.ownPaymentYen)}</td>
+                      <td style={styles.tableTd}>
+                        <span style={badgeStyles[t.status]}>{STATUS_LABELS[t.status]}</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
       </main>
     </div>
   );
-}
-
-function monthAfter(yearMonth: string): Date {
-  const [year, month] = yearMonth.split("-").map(Number);
-  return new Date(year, month, 1);
 }
 
 interface SummaryBoxProps {

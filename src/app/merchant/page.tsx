@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentYearMonth, yen } from "@/lib/points";
 import { getMerchantTransactions } from "@/lib/server/queries";
 import AppHeader from "@/components/shared/app-header";
+import MonthNav from "@/components/shared/month-nav";
 import { styles, badgeStyles, STATUS_LABELS } from "@/components/shared/styles";
 import Link from "next/link";
 import UsageRegisterButton from "@/components/shared/usage-register-button";
@@ -10,27 +11,38 @@ import ConfirmTxButton from "@/components/shared/confirm-tx-button";
 
 export const dynamic = "force-dynamic";
 
-export default async function MerchantPage() {
+function resolveYearMonth(ym?: string): string {
+  const current = getCurrentYearMonth();
+  if (!ym || !/^\d{4}-\d{2}$/.test(ym)) return current;
+  return ym > current ? current : ym;
+}
+
+export default async function MerchantPage({
+  searchParams,
+}: {
+  searchParams: { ym?: string };
+}) {
   const session = await requireMerchant();
   const merchantId = session.user.merchantId;
-  const yearMonth = getCurrentYearMonth();
+  const currentYearMonth = getCurrentYearMonth();
+  const yearMonth = resolveYearMonth(searchParams.ym);
 
-  const [merchant, services, allTx, monthTx] = await Promise.all([
+  const [merchant, services, monthTx] = await Promise.all([
     prisma.merchant.findUniqueOrThrow({ where: { id: merchantId } }),
     prisma.service.findMany({
       where: { merchantId, deletedAt: null },
       orderBy: { priceYen: "asc" },
     }),
-    getMerchantTransactions(merchantId, undefined, 30),
-    getMerchantTransactions(merchantId, yearMonth),
+    getMerchantTransactions(merchantId, yearMonth, 200),
   ]);
 
-  const monthConfirmed = monthTx.filter(
+  const confirmedTx = monthTx.filter(
     (t) => t.status === "confirmed" || t.status === "invoiced"
   );
-  const monthPoints = monthConfirmed.reduce((s, t) => s + t.pointsUsed, 0);
+  const monthPoints = confirmedTx.reduce((s, t) => s + t.pointsUsed, 0);
   const monthRevenue = monthPoints * 1000;
   const pendingCount = monthTx.filter((t) => t.status === "pending_usage").length;
+  const isCurrentMonth = yearMonth === currentYearMonth;
 
   return (
     <div style={{ minHeight: "100vh" }}>
@@ -47,7 +59,11 @@ export default async function MerchantPage() {
               {merchant.address} · 登録番号 {merchant.invoiceRegNo}
             </div>
           </div>
-          <div style={styles.periodLabel}>{yearMonth} 期間</div>
+          <MonthNav
+            yearMonth={yearMonth}
+            basePath="/merchant"
+            currentYearMonth={currentYearMonth}
+          />
         </div>
 
         <div
@@ -58,9 +74,9 @@ export default async function MerchantPage() {
             marginBottom: 28,
           }}
         >
-          <SummaryBox label="今月の利用ポイント" value={`${monthPoints}`} unit="pt" />
+          <SummaryBox label="利用ポイント" value={`${monthPoints}`} unit="pt" />
           <SummaryBox label="ポイント換算売上" value={yen(monthRevenue)} accent="matcha" />
-          <SummaryBox label="利用件数" value={`${monthConfirmed.length}`} unit="件" accent="gold" />
+          <SummaryBox label="利用件数" value={`${confirmedTx.length}`} unit="件" accent="gold" />
           <SummaryBox
             label="未確定の取引"
             value={`${pendingCount}`}
@@ -73,10 +89,11 @@ export default async function MerchantPage() {
           <div style={styles.card}>
             <div style={styles.cardTitle}>
               <span>利用実績</span>
-              <UsageRegisterButton />
+              {/* 利用登録は当月のみ */}
+              {isCurrentMonth && <UsageRegisterButton />}
             </div>
-            {allTx.length === 0 ? (
-              <div style={styles.empty}>利用実績はまだありません</div>
+            {monthTx.length === 0 ? (
+              <div style={styles.empty}>{yearMonth} の利用実績はありません</div>
             ) : (
               <table style={styles.table}>
                 <thead>
@@ -89,7 +106,7 @@ export default async function MerchantPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {allTx.map((t) => (
+                  {monthTx.map((t) => (
                     <tr key={t.id}>
                       <td style={{ ...styles.tableTd, ...styles.monoCell }}>
                         {t.usedDate.toISOString().slice(5, 10)}
@@ -105,7 +122,8 @@ export default async function MerchantPage() {
                       <td style={{ ...styles.tableTd, ...styles.amountCell }}>{t.pointsUsed}</td>
                       <td style={styles.tableTd}>
                         <span style={badgeStyles[t.status]}>{STATUS_LABELS[t.status]}</span>
-                        {t.status === "pending_usage" && (
+                        {/* 確定操作は当月のみ */}
+                        {isCurrentMonth && t.status === "pending_usage" && (
                           <div style={{ marginTop: 4 }}>
                             <ConfirmTxButton transactionId={t.id} />
                           </div>
@@ -136,11 +154,11 @@ export default async function MerchantPage() {
                     fontSize: 12,
                     padding: "7px 14px",
                   }}
-                  title="今月の請求書明細をCSVで一括ダウンロード"
+                  title={`${yearMonth}の請求書明細をCSVで一括ダウンロード`}
                 >
-                  📄 今月の明細CSV
+                  📄 明細CSV ({yearMonth})
                 </a>
-                <Link href="/merchant/invoice" style={{ ...styles.btn }}>
+                <Link href={`/merchant/invoice?ym=${yearMonth}`} style={{ ...styles.btn }}>
                   {yearMonth} 請求書を作成
                 </Link>
               </div>
@@ -187,7 +205,18 @@ export default async function MerchantPage() {
             )}
 
             <div style={{ marginTop: 24, paddingTop: 16, borderTop: "1px solid var(--line)" }}>
-              <div style={{ fontSize: 11, letterSpacing: "0.15em", color: "var(--ink-mute)", textTransform: "uppercase", marginBottom: 8, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div
+                style={{
+                  fontSize: 11,
+                  letterSpacing: "0.15em",
+                  color: "var(--ink-mute)",
+                  textTransform: "uppercase",
+                  marginBottom: 8,
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
                 <span>店舗HP・予約サイト</span>
                 <Link
                   href="/merchant/profile"
