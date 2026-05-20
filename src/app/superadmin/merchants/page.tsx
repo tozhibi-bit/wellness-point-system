@@ -45,6 +45,7 @@ export default async function MerchantsPage() {
               email: m.email,
               category: m.category,
               address: m.address ?? "",
+              phone: m.phone ?? "",
               websiteUrl: m.websiteUrl,
               invoiceRegNo: m.invoiceRegNo,
               isActive: m.isActive,

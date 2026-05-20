@@ -42,6 +42,10 @@ export default function EmployeeManager({ companies, initialEmployees }: Props) 
   });
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [resetId, setResetId] = useState<string | null>(null);
+  const [resetPassword, setResetPassword] = useState("");
+  const [resetError, setResetError] = useState<string | null>(null);
+  const [resetSaving, setResetSaving] = useState(false);
 
   const filtered = useMemo(() => {
     return employees.filter((e) => {
@@ -54,6 +58,45 @@ export default function EmployeeManager({ companies, initialEmployees }: Props) 
       return true;
     });
   }, [employees, filter, search]);
+
+  function openReset(e: Employee) {
+    setResetId(e.id);
+    setResetPassword("");
+    setResetError(null);
+    setEditingId(null);
+  }
+
+  async function saveReset() {
+    if (resetPassword.length < 8) {
+      setResetError("パスワードは8文字以上で入力してください");
+      return;
+    }
+    setResetSaving(true);
+    setResetError(null);
+    try {
+      const target = employees.find((e) => e.id === resetId)!;
+      const res = await fetch(`/api/superadmin/employees/${resetId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: target.name,
+          email: target.email,
+          department: target.department,
+          newPassword: resetPassword,
+        }),
+      });
+      const j = await res.json();
+      if (!res.ok) {
+        setResetError(j.error ?? "リセットに失敗しました");
+        return;
+      }
+      setResetId(null);
+    } catch {
+      setResetError("通信エラー");
+    } finally {
+      setResetSaving(false);
+    }
+  }
 
   function openNew() {
     const targetCompanyId = filter !== "all" ? filter : companies[0]?.id ?? "";
@@ -244,6 +287,36 @@ export default function EmployeeManager({ companies, initialEmployees }: Props) 
         </div>
       )}
 
+      {/* パスワードリセットパネル */}
+      {resetId !== null && (
+        <div style={{ ...editPanelStyle, borderLeftColor: "var(--gold)" }}>
+          <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 16, fontWeight: 700, marginBottom: 4 }}>
+            パスワードをリセット
+          </div>
+          <div style={{ fontSize: 12, color: "var(--ink-mute)", marginBottom: 14 }}>
+            {employees.find((e) => e.id === resetId)?.name} — 新しいパスワードを設定します
+          </div>
+          <Field label="新しいパスワード(8文字以上)" required>
+            <input
+              type="text"
+              value={resetPassword}
+              onChange={(e) => setResetPassword(e.target.value)}
+              style={inputStyle}
+              placeholder="新しいパスワード"
+            />
+          </Field>
+          {resetError && <div style={errorStyle}>{resetError}</div>}
+          <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 14 }}>
+            <button onClick={() => setResetId(null)} style={btnGhostStyle}>
+              キャンセル
+            </button>
+            <button onClick={saveReset} disabled={resetSaving} style={{ ...btnAccentStyle, background: "var(--gold)" }}>
+              {resetSaving ? "リセット中..." : "リセット実行"}
+            </button>
+          </div>
+        </div>
+      )}
+
       <div style={{ fontSize: 12, color: "var(--ink-mute)", marginBottom: 8 }}>
         表示中: {filtered.length}名
       </div>
@@ -278,9 +351,12 @@ export default function EmployeeManager({ companies, initialEmployees }: Props) 
                   <span style={{ color: "var(--ink-mute)", fontSize: 11 }}>○ 無効</span>
                 )}
               </td>
-              <td style={tdStyle}>
+              <td style={{ ...tdStyle, display: "flex", gap: 6 }}>
                 <button onClick={() => openEdit(e)} style={btnGhostSmStyle}>
                   編集
+                </button>
+                <button onClick={() => openReset(e)} style={{ ...btnGhostSmStyle, color: "var(--gold)", borderColor: "var(--gold)" }}>
+                  PW
                 </button>
               </td>
             </tr>

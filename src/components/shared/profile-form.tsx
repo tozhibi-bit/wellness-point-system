@@ -6,12 +6,14 @@ import { useRouter } from "next/navigation";
 interface Props {
   initialWebsiteUrl: string;
   initialAddress: string;
+  initialPhone: string;
 }
 
-export default function ProfileForm({ initialWebsiteUrl, initialAddress }: Props) {
+export default function ProfileForm({ initialWebsiteUrl, initialAddress, initialPhone }: Props) {
   const router = useRouter();
   const [websiteUrl, setWebsiteUrl] = useState(initialWebsiteUrl);
   const [address, setAddress] = useState(initialAddress);
+  const [phone, setPhone] = useState(initialPhone);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: "ok" | "err"; text: string } | null>(null);
 
@@ -26,6 +28,7 @@ export default function ProfileForm({ initialWebsiteUrl, initialAddress }: Props
         body: JSON.stringify({
           websiteUrl: websiteUrl.trim(),
           address: address.trim() || null,
+          phone: phone.trim() || null,
         }),
       });
       const j = await res.json();
@@ -57,9 +60,19 @@ export default function ProfileForm({ initialWebsiteUrl, initialAddress }: Props
           required
         />
         <div style={hintStyle}>
-          従業員のマイページから各サービスの「店舗HPへ」ボタンで開かれます。<br />
-          予約ページや詳細ページのURLを設定してください。
+          従業員のマイページから各サービスの「店舗HPへ」ボタンで開かれます。
         </div>
+      </div>
+
+      <div style={fieldStyle}>
+        <label style={labelStyle}>電話番号</label>
+        <input
+          type="tel"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          placeholder="例: 06-1234-5678"
+          style={inputStyle}
+        />
       </div>
 
       <div style={fieldStyle}>

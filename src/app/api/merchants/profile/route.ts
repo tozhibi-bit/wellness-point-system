@@ -11,6 +11,7 @@ const updateSchema = z.object({
     .url("有効なURLを入力してください")
     .max(500, "URLが長すぎます"),
   address: z.string().max(200).optional().nullable(),
+  phone: z.string().max(20).optional().nullable(),
 });
 
 export async function PATCH(req: NextRequest) {
@@ -35,6 +36,7 @@ export async function PATCH(req: NextRequest) {
     data: {
       websiteUrl: body.websiteUrl,
       address: body.address ?? null,
+      phone: body.phone ?? null,
     },
   });
 

@@ -2,14 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import bcrypt from "bcryptjs";
 
 const updateSchema = z.object({
   name: z.string().min(1).max(100),
   email: z.string().email(),
   category: z.string().min(1).max(50),
   address: z.string().max(200).optional(),
+  phone: z.string().max(20).optional().nullable(),
   websiteUrl: z.string().url(),
   invoiceRegNo: z.string().regex(/^T\d{13}$/),
+  newPassword: z.string().min(8).optional(),
 });
 
 export async function PATCH(
@@ -39,16 +42,22 @@ export async function PATCH(
     if (dup) return NextResponse.json({ error: "このメールは既に使われています" }, { status: 400 });
   }
 
+  const updateData: Record<string, unknown> = {
+    name: body.name,
+    email: body.email,
+    category: body.category,
+    address: body.address || null,
+    phone: body.phone || null,
+    websiteUrl: body.websiteUrl,
+    invoiceRegNo: body.invoiceRegNo,
+  };
+  if (body.newPassword) {
+    updateData.passwordHash = await bcrypt.hash(body.newPassword, 12);
+  }
+
   const merchant = await prisma.merchant.update({
     where: { id: params.id },
-    data: {
-      name: body.name,
-      email: body.email,
-      category: body.category,
-      address: body.address || null,
-      websiteUrl: body.websiteUrl,
-      invoiceRegNo: body.invoiceRegNo,
-    },
+    data: updateData,
   });
 
   return NextResponse.json({ success: true, merchant });

@@ -2,11 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import bcrypt from "bcryptjs";
 
 const updateSchema = z.object({
   name: z.string().min(1).max(50),
   email: z.string().email(),
   department: z.string().max(50).optional(),
+  newPassword: z.string().min(8).optional(),
 });
 
 export async function PATCH(
@@ -40,13 +42,18 @@ export async function PATCH(
     }
   }
 
+  const updateData: Record<string, unknown> = {
+    name: body.name,
+    email: body.email,
+    department: body.department || null,
+  };
+  if (body.newPassword) {
+    updateData.passwordHash = await bcrypt.hash(body.newPassword, 12);
+  }
+
   const employee = await prisma.employee.update({
     where: { id: params.id },
-    data: {
-      name: body.name,
-      email: body.email,
-      department: body.department || null,
-    },
+    data: updateData,
   });
 
   return NextResponse.json({ success: true, employee });

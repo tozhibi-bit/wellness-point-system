@@ -116,11 +116,16 @@ export default async function AdminPage({
             <div style={styles.pageTitle}>管理ダッシュボード</div>
             <div style={styles.pageSub}>{company.name} / 福利厚生ポイント管理</div>
           </div>
-          <MonthNav
-            yearMonth={yearMonth}
-            basePath="/admin"
-            currentYearMonth={currentYearMonth}
-          />
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <MonthNav
+              yearMonth={yearMonth}
+              basePath="/admin"
+              currentYearMonth={currentYearMonth}
+            />
+            <Link href="/admin/settings" style={{ ...styles.btn, ...styles.btnGhost, ...styles.btnSm }}>
+              設定
+            </Link>
+          </div>
         </div>
 
         {!isCurrentMonth && (

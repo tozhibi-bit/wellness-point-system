@@ -8,6 +8,7 @@ import {
 import { prisma } from "@/lib/prisma";
 import { yen, getCurrentYearMonth, getMaxPointsByPrice } from "@/lib/points";
 import AppHeader from "@/components/shared/app-header";
+import PasswordChangeForm from "@/components/shared/password-change-form";
 import { styles, badgeStyles, STATUS_LABELS } from "@/components/shared/styles";
 
 export const dynamic = "force-dynamic";
@@ -222,6 +223,17 @@ export default async function EmployeePage() {
           </div>
 
         </div>
+
+        {/* パスワード変更 */}
+        <div style={{ ...styles.card, marginTop: 20 }}>
+          <div style={styles.cardTitle}>
+            <span>パスワード変更</span>
+          </div>
+          <div style={{ maxWidth: 400 }}>
+            <PasswordChangeForm />
+          </div>
+        </div>
+
       </main>
     </div>
   );

@@ -113,6 +113,7 @@ model Merchant {
   passwordHash   String    @map("password_hash")
   category       String    // ジム/ゴルフ練習場/マッサージ等
   address        String?
+  phone          String?   // 電話番号（任意）
   websiteUrl     String    @map("website_url") // 店舗HP・予約ページURL(必須)
   invoiceRegNo   String    @map("invoice_reg_no") // 適格請求書登録番号 T+13桁
   isActive       Boolean   @default(true) @map("is_active")
