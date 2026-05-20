@@ -4,14 +4,14 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 interface Props {
-  initialWebsiteUrl: string;
+  initialWebsiteUrl: string | null;
   initialAddress: string;
   initialPhone: string;
 }
 
 export default function ProfileForm({ initialWebsiteUrl, initialAddress, initialPhone }: Props) {
   const router = useRouter();
-  const [websiteUrl, setWebsiteUrl] = useState(initialWebsiteUrl);
+  const [websiteUrl, setWebsiteUrl] = useState(initialWebsiteUrl ?? "");
   const [address, setAddress] = useState(initialAddress);
   const [phone, setPhone] = useState(initialPhone);
   const [saving, setSaving] = useState(false);
@@ -48,19 +48,17 @@ export default function ProfileForm({ initialWebsiteUrl, initialAddress, initial
   return (
     <form onSubmit={save}>
       <div style={fieldStyle}>
-        <label style={labelStyle}>
-          店舗HP・予約サイトURL <span style={{ color: "var(--accent)" }}>必須</span>
-        </label>
+        <label style={labelStyle}>店舗HP・予約サイトURL</label>
         <input
           type="url"
           value={websiteUrl}
           onChange={(e) => setWebsiteUrl(e.target.value)}
           placeholder="https://example.com/booking"
           style={inputStyle}
-          required
         />
         <div style={hintStyle}>
-          従業員のマイページから各サービスの「店舗HPへ」ボタンで開かれます。
+          URLを設定すると、従業員のマイページに「店舗HPへ」ボタンが表示されます。<br />
+          URLがない場合は電話番号へのリンクが表示されます。
         </div>
       </div>
 

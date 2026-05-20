@@ -5,11 +5,7 @@ import { z } from "zod";
 import { recordAudit } from "@/lib/audit";
 
 const updateSchema = z.object({
-  websiteUrl: z
-    .string()
-    .min(1, "URLを入力してください")
-    .url("有効なURLを入力してください")
-    .max(500, "URLが長すぎます"),
+  websiteUrl: z.string().url("有効なURLを入力してください").max(500).optional().nullable().or(z.literal("")),
   address: z.string().max(200).optional().nullable(),
   phone: z.string().max(20).optional().nullable(),
 });
@@ -34,7 +30,7 @@ export async function PATCH(req: NextRequest) {
   const updated = await prisma.merchant.update({
     where: { id: merchantId },
     data: {
-      websiteUrl: body.websiteUrl,
+      websiteUrl: body.websiteUrl || null,
       address: body.address ?? null,
       phone: body.phone ?? null,
     },

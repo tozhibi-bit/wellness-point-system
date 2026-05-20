@@ -11,7 +11,7 @@ interface Merchant {
   category: string;
   address: string;
   phone: string;
-  websiteUrl: string;
+  websiteUrl: string | null;
   invoiceRegNo: string;
   isActive: boolean;
   contractCount: number;
@@ -66,7 +66,7 @@ export default function MerchantManager({ initialMerchants }: { initialMerchants
       category: m.category,
       address: m.address,
       phone: m.phone,
-      websiteUrl: m.websiteUrl,
+      websiteUrl: m.websiteUrl ?? "",
       invoiceRegNo: m.invoiceRegNo,
       password: "",
     });
@@ -113,8 +113,8 @@ export default function MerchantManager({ initialMerchants }: { initialMerchants
 
   async function save() {
     setError(null);
-    if (!form.name.trim() || !form.email.trim() || !form.category.trim() || !form.websiteUrl.trim() || !form.invoiceRegNo.trim()) {
-      setError("店舗名・メール・カテゴリ・URL・登録番号は必須です");
+    if (!form.name.trim() || !form.email.trim() || !form.category.trim() || !form.invoiceRegNo.trim()) {
+      setError("店舗名・メール・カテゴリ・登録番号は必須です");
       return;
     }
     if (editingId === "new" && form.password.length < 8) {
@@ -146,7 +146,7 @@ export default function MerchantManager({ initialMerchants }: { initialMerchants
           category: j.merchant.category,
           address: j.merchant.address ?? "",
           phone: j.merchant.phone ?? "",
-          websiteUrl: j.merchant.websiteUrl,
+          websiteUrl: j.merchant.websiteUrl ?? null,
           invoiceRegNo: j.merchant.invoiceRegNo,
           isActive: j.merchant.isActive,
           contractCount: isNew ? j.contractCount ?? 0 : merchants.find((m) => m.id === editingId)?.contractCount ?? 0,
@@ -223,7 +223,7 @@ export default function MerchantManager({ initialMerchants }: { initialMerchants
             </Field>
           </div>
           <div style={{ marginTop: 14 }}>
-            <Field label="店舗HP・予約サイトURL" required>
+            <Field label="店舗HP・予約サイトURL">
               <input
                 type="url"
                 value={form.websiteUrl}

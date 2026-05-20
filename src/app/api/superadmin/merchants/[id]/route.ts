@@ -10,7 +10,7 @@ const updateSchema = z.object({
   category: z.string().min(1).max(50),
   address: z.string().max(200).optional(),
   phone: z.string().max(20).optional().nullable(),
-  websiteUrl: z.string().url(),
+  websiteUrl: z.string().url().optional().or(z.literal("")),
   invoiceRegNo: z.string().regex(/^T\d{13}$/),
   newPassword: z.string().min(8).optional(),
 });
@@ -48,7 +48,7 @@ export async function PATCH(
     category: body.category,
     address: body.address || null,
     phone: body.phone || null,
-    websiteUrl: body.websiteUrl,
+    websiteUrl: body.websiteUrl || null,
     invoiceRegNo: body.invoiceRegNo,
   };
   if (body.newPassword) {

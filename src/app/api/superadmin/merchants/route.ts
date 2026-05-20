@@ -11,7 +11,7 @@ const createSchema = z.object({
   category: z.string().min(1).max(50),
   address: z.string().max(200).optional(),
   phone: z.string().max(20).optional(),
-  websiteUrl: z.string().url(),
+  websiteUrl: z.string().url().optional().or(z.literal("")),
   invoiceRegNo: z.string().regex(/^T\d{13}$/, "登録番号はT+13桁の数字"),
   password: z.string().min(8),
 });
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
       category: body.category,
       address: body.address || null,
       phone: body.phone || null,
-      websiteUrl: body.websiteUrl,
+      websiteUrl: body.websiteUrl || null,
       invoiceRegNo: body.invoiceRegNo,
       passwordHash,
       isActive: true,

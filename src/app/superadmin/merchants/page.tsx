@@ -46,7 +46,7 @@ export default async function MerchantsPage() {
               category: m.category,
               address: m.address ?? "",
               phone: m.phone ?? "",
-              websiteUrl: m.websiteUrl,
+              websiteUrl: m.websiteUrl ?? null,
               invoiceRegNo: m.invoiceRegNo,
               isActive: m.isActive,
               contractCount: m._count.contracts,

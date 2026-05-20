@@ -137,26 +137,47 @@ export default async function EmployeePage() {
                         >
                           最大 {getMaxPointsByPrice(s.priceYen)} pt
                         </div>
-                        <a
-                          href={m.websiteUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: 4,
-                            background: "var(--sumi)",
-                            color: "#fbfaf6",
-                            padding: "6px 12px",
-                            fontSize: 11,
-                            fontWeight: 500,
-                            textDecoration: "none",
-                            borderRadius: 4,
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          店舗HPへ ↗
-                        </a>
+                        {m.websiteUrl ? (
+                          <a
+                            href={m.websiteUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 4,
+                              background: "var(--sumi)",
+                              color: "#fbfaf6",
+                              padding: "6px 12px",
+                              fontSize: 11,
+                              fontWeight: 500,
+                              textDecoration: "none",
+                              borderRadius: 4,
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            店舗HPへ ↗
+                          </a>
+                        ) : m.phone ? (
+                          <a
+                            href={`tel:${m.phone.replace(/[^\d+]/g, "")}`}
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 4,
+                              background: "var(--matcha)",
+                              color: "#fbfaf6",
+                              padding: "6px 12px",
+                              fontSize: 11,
+                              fontWeight: 500,
+                              textDecoration: "none",
+                              borderRadius: 4,
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            📞 {m.phone}
+                          </a>
+                        ) : null}
                       </div>
                     </div>
                   ))}
@@ -177,7 +198,7 @@ export default async function EmployeePage() {
             >
               <strong style={{ color: "var(--accent)" }}>ご利用の流れ</strong>
               <br />
-              ① 上記の「店舗HPへ」から各店舗の予約サイトへ移動 → ② 来店・サービス利用 → ③ 利用後、店舗側でポイントが登録され、利用履歴に反映されます
+              ① 「店舗HPへ」または電話番号から各店舗へ予約・問い合わせ → ② 来店・サービス利用 → ③ 利用後、店舗側でポイントが登録され、利用履歴に反映されます
             </div>
           </div>
 
