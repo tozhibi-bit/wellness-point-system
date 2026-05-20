@@ -83,14 +83,6 @@ export default function LoginForm() {
         </button>
       </form>
 
-      <div style={demoAccountsStyle}>
-        <strong style={{ color: "var(--accent)" }}>▼ デモ用アカウント</strong>
-        <div>パスワード: <code>demo1234</code></div>
-        <div>従業員: tanaka@acme.co.jp</div>
-        <div>加盟店: gym@fit-osaka.jp</div>
-        <div>企業内管理者: admin@acme.co.jp</div>
-        <div>スーパー管理者: super@wellness.example.jp</div>
-      </div>
     </div>
   );
 }
@@ -188,13 +180,3 @@ const submitButtonStyle: React.CSSProperties = {
   borderRadius: 4,
 };
 
-const demoAccountsStyle: React.CSSProperties = {
-  marginTop: 20,
-  padding: 14,
-  background: "var(--bg)",
-  border: "1px dashed var(--line-strong)",
-  fontSize: 11,
-  color: "var(--ink-soft)",
-  fontFamily: "'JetBrains Mono', monospace",
-  lineHeight: 1.8,
-};
