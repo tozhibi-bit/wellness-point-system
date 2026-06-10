@@ -102,12 +102,40 @@ export default async function EmployeePage() {
                     >
                       {m.name.charAt(0)}
                     </span>
-                    <div>
+                    <div style={{ flex: 1 }}>
                       <div style={{ fontWeight: 500 }}>{m.name}</div>
                       <div style={{ fontSize: 11, color: "var(--ink-mute)" }}>
                         {m.category} · {m.address}
                       </div>
                     </div>
+                    {/* 店舗ヘッダーにもHP/電話リンクを表示（サービス未登録でも押せる） */}
+                    {m.websiteUrl ? (
+                      <a
+                        href={m.websiteUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          display: "inline-flex", alignItems: "center", gap: 4,
+                          background: "var(--sumi)", color: "#fbfaf6",
+                          padding: "4px 10px", fontSize: 11, fontWeight: 500,
+                          textDecoration: "none", borderRadius: 4, whiteSpace: "nowrap",
+                        }}
+                      >
+                        店舗HPへ ↗
+                      </a>
+                    ) : m.phone ? (
+                      <a
+                        href={`tel:${m.phone.replace(/[^\d+]/g, "")}`}
+                        style={{
+                          display: "inline-flex", alignItems: "center", gap: 4,
+                          background: "var(--matcha)", color: "#fbfaf6",
+                          padding: "4px 10px", fontSize: 11, fontWeight: 500,
+                          textDecoration: "none", borderRadius: 4, whiteSpace: "nowrap",
+                        }}
+                      >
+                        📞 {m.phone}
+                      </a>
+                    ) : null}
                   </div>
 
                   {/* サービス行 */}
