@@ -121,7 +121,7 @@ export default async function EmployeePage() {
                           textDecoration: "none", borderRadius: 4, whiteSpace: "nowrap",
                         }}
                       >
-                        店舗HPへ ↗
+                        予約はこちら ↗
                       </a>
                     ) : m.phone ? (
                       <a
@@ -142,7 +142,7 @@ export default async function EmployeePage() {
                   {m.services.map((s) => (
                     <div
                       key={s.id}
-                      className="flex flex-col sm:grid sm:grid-cols-[1fr_auto_auto_auto] gap-2 sm:gap-[14px] sm:pl-[46px] py-3 border-b border-dashed border-[var(--line)]"
+                      className="flex flex-col sm:grid sm:grid-cols-[1fr_auto_auto] gap-2 sm:gap-[14px] sm:pl-[46px] py-3 border-b border-dashed border-[var(--line)]"
                     >
                       <div>
                         <div style={{ fontWeight: 500 }}>{s.name}</div>
@@ -150,62 +150,19 @@ export default async function EmployeePage() {
                           {s.description}
                         </div>
                       </div>
-                      <div className="flex items-center justify-between sm:contents gap-3">
-                        <div style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 700 }}>
-                          {yen(s.priceYen)}
-                        </div>
-                        <div
-                          style={{
-                            fontSize: 10,
-                            color: "var(--ink-mute)",
-                            fontFamily: "'JetBrains Mono', monospace",
-                            minWidth: 60,
-                            textAlign: "right",
-                          }}
-                        >
-                          最大 {getMaxPointsByPrice(s.priceYen)} pt
-                        </div>
-                        {m.websiteUrl ? (
-                          <a
-                            href={m.websiteUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{
-                              display: "inline-flex",
-                              alignItems: "center",
-                              gap: 4,
-                              background: "var(--sumi)",
-                              color: "#fbfaf6",
-                              padding: "6px 12px",
-                              fontSize: 11,
-                              fontWeight: 500,
-                              textDecoration: "none",
-                              borderRadius: 4,
-                              whiteSpace: "nowrap",
-                            }}
-                          >
-                            店舗HPへ ↗
-                          </a>
-                        ) : m.phone ? (
-                          <a
-                            href={`tel:${m.phone.replace(/[^\d+]/g, "")}`}
-                            style={{
-                              display: "inline-flex",
-                              alignItems: "center",
-                              gap: 4,
-                              background: "var(--matcha)",
-                              color: "#fbfaf6",
-                              padding: "6px 12px",
-                              fontSize: 11,
-                              fontWeight: 500,
-                              textDecoration: "none",
-                              borderRadius: 4,
-                              whiteSpace: "nowrap",
-                            }}
-                          >
-                            📞 {m.phone}
-                          </a>
-                        ) : null}
+                      <div style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 700 }}>
+                        {yen(s.priceYen)}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 10,
+                          color: "var(--ink-mute)",
+                          fontFamily: "'JetBrains Mono', monospace",
+                          minWidth: 60,
+                          textAlign: "right",
+                        }}
+                      >
+                        最大 {getMaxPointsByPrice(s.priceYen)} pt
                       </div>
                     </div>
                   ))}
