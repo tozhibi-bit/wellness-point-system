@@ -34,12 +34,14 @@ export default async function SuperAdminPage() {
   ]);
 
   const totalPoints = monthTx.reduce((s, t) => s + t.pointsUsed, 0);
-  const totalRevenue = totalPoints * 1000;
-  const byCompany = new Map<string, { name: string; points: number; count: number }>();
+  const totalServiceAmount = monthTx.reduce((s, t) => s + t.serviceAmountYen, 0);
+  const totalSubsidy = totalPoints * 1000;
+  const byCompany = new Map<string, { name: string; points: number; count: number; serviceAmount: number }>();
   for (const t of monthTx) {
-    const cur = byCompany.get(t.companyId) ?? { name: t.company.name, points: 0, count: 0 };
+    const cur = byCompany.get(t.companyId) ?? { name: t.company.name, points: 0, count: 0, serviceAmount: 0 };
     cur.points += t.pointsUsed;
     cur.count += 1;
+    cur.serviceAmount += t.serviceAmountYen;
     byCompany.set(t.companyId, cur);
   }
 
@@ -59,11 +61,12 @@ export default async function SuperAdminPage() {
           <div style={styles.periodLabel}>{yearMonth} 期間</div>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 28 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 16, marginBottom: 28 }}>
           <SummaryBox label="登録企業数" value={`${companies.length}`} unit="社" />
           <SummaryBox label="総従業員数" value={`${totalEmployees}`} unit="名" accent="matcha" />
           <SummaryBox label="登録加盟店数" value={`${merchants}`} unit="店" accent="gold" />
-          <SummaryBox label="今月の総売上" value={yen(totalRevenue)} accent="sumi" />
+          <SummaryBox label="今月の総利用金額" value={yen(totalServiceAmount)} accent="sumi" />
+          <SummaryBox label="今月の総割引額" value={yen(totalSubsidy)} accent="accent" />
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 28 }}>
@@ -101,24 +104,26 @@ export default async function SuperAdminPage() {
                 <th style={styles.tableTh}>会社ID</th>
                 <th style={styles.tableTh}>会社名</th>
                 <th style={{ ...styles.tableTh, textAlign: "right" }}>従業員数</th>
+                <th style={{ ...styles.tableTh, textAlign: "right" }}>補助率</th>
                 <th style={{ ...styles.tableTh, textAlign: "right" }}>月次pt</th>
-                <th style={{ ...styles.tableTh, textAlign: "right" }}>当月利用pt</th>
                 <th style={{ ...styles.tableTh, textAlign: "right" }}>当月件数</th>
-                <th style={{ ...styles.tableTh, textAlign: "right" }}>当月売上</th>
+                <th style={{ ...styles.tableTh, textAlign: "right" }}>利用金額</th>
+                <th style={{ ...styles.tableTh, textAlign: "right" }}>割引額(会社負担)</th>
               </tr>
             </thead>
             <tbody>
               {companies.map((c) => {
-                const stats = byCompany.get(c.id) ?? { points: 0, count: 0 };
+                const stats = byCompany.get(c.id) ?? { points: 0, count: 0, serviceAmount: 0 };
                 return (
                   <tr key={c.id}>
                     <td style={{ ...styles.tableTd, ...styles.monoCell }}>{c.displayId}</td>
                     <td style={{ ...styles.tableTd, fontWeight: 500 }}>{c.name}</td>
                     <td style={{ ...styles.tableTd, ...styles.amountCell }}>{c._count.employees}</td>
-                    <td style={{ ...styles.tableTd, ...styles.amountCell }}>{c.monthlyPoints}</td>
-                    <td style={{ ...styles.tableTd, ...styles.amountCell }}>{stats.points}</td>
-                    <td style={{ ...styles.tableTd, ...styles.amountCell }}>{stats.count}</td>
-                    <td style={{ ...styles.tableTd, ...styles.amountCell, fontWeight: 700 }}>
+                    <td style={{ ...styles.tableTd, ...styles.amountCell }}>{c.subsidyPct}%</td>
+                    <td style={{ ...styles.tableTd, ...styles.amountCell }}>{c.monthlyPoints}pt</td>
+                    <td style={{ ...styles.tableTd, ...styles.amountCell }}>{stats.count}件</td>
+                    <td style={{ ...styles.tableTd, ...styles.amountCell }}>{yen(stats.serviceAmount)}</td>
+                    <td style={{ ...styles.tableTd, ...styles.amountCell, fontWeight: 700, color: "var(--accent)" }}>
                       {yen(stats.points * 1000)}
                     </td>
                   </tr>

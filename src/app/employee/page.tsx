@@ -26,6 +26,7 @@ export default async function EmployeePage() {
     getActiveMerchantsForCompany(session.user.companyId),
   ]);
 
+  const subsidyPct = company.subsidyPct;
   const usagePct = (points.used / Math.max(1, points.granted)) * 100;
 
   const today = new Date();
@@ -65,7 +66,7 @@ export default async function EmployeePage() {
             <div style={{ ...pointMeterFillStyle, width: `${usagePct}%` }} />
           </div>
           <div style={pointExpiryStyle}>
-            ※ ポイントは月末に失効 — あと{daysLeft}日 / 1pt = 1,000円 / サービス額の50%まで利用可
+            ※ ポイントは月末に失効 — あと{daysLeft}日 / 1pt = 1,000円 / サービス額の{subsidyPct}%まで利用可
           </div>
         </div>
 
@@ -80,94 +81,164 @@ export default async function EmployeePage() {
                 {merchants.length} SHOPS · {merchants.reduce((s, m) => s + m.services.length, 0)} SERVICES
               </span>
             </div>
-            <div style={{ maxHeight: 480, overflowY: "auto" }}>
-              {merchants.map((m) => (
-                <div key={m.id} style={{ marginBottom: 20 }}>
-                  {/* 店舗ヘッダー */}
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-                    <span
-                      style={{
-                        width: 36,
-                        height: 36,
-                        background: "var(--bg)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontFamily: "'Shippori Mincho', serif",
-                        fontSize: 16,
-                        color: "var(--accent)",
-                        border: "1px solid var(--line)",
-                        flexShrink: 0,
-                      }}
-                    >
-                      {m.name.charAt(0)}
-                    </span>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 500 }}>{m.name}</div>
-                      <div style={{ fontSize: 11, color: "var(--ink-mute)" }}>
-                        {m.category} · {m.address}
-                      </div>
-                    </div>
-                    {/* 店舗ヘッダーにもHP/電話リンクを表示（サービス未登録でも押せる） */}
-                    {m.websiteUrl ? (
-                      <a
-                        href={m.websiteUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{
-                          display: "inline-flex", alignItems: "center", gap: 4,
-                          background: "var(--sumi)", color: "#fbfaf6",
-                          padding: "4px 10px", fontSize: 11, fontWeight: 500,
-                          textDecoration: "none", borderRadius: 4, whiteSpace: "nowrap",
-                        }}
-                      >
-                        予約はこちら ↗
-                      </a>
-                    ) : m.phone ? (
-                      <a
-                        href={`tel:${m.phone.replace(/[^\d+]/g, "")}`}
-                        style={{
-                          display: "inline-flex", alignItems: "center", gap: 4,
-                          background: "var(--matcha)", color: "#fbfaf6",
-                          padding: "4px 10px", fontSize: 11, fontWeight: 500,
-                          textDecoration: "none", borderRadius: 4, whiteSpace: "nowrap",
-                        }}
-                      >
-                        📞 {m.phone}
-                      </a>
-                    ) : null}
-                  </div>
+            <div style={{ maxHeight: 600, overflowY: "auto" }}>
+              {merchants.map((m) => {
+                const reservationBtn = m.websiteUrl ? (
+                  <a
+                    href={m.websiteUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={reserveBtnStyle}
+                  >
+                    予約はこちら ↗
+                  </a>
+                ) : m.phone ? (
+                  <a
+                    href={`tel:${m.phone.replace(/[^\d+]/g, "")}`}
+                    style={{ ...reserveBtnStyle, background: "var(--matcha)" }}
+                  >
+                    📞 {m.phone}
+                  </a>
+                ) : null;
 
-                  {/* サービス行 */}
-                  {m.services.map((s) => (
-                    <div
-                      key={s.id}
-                      className="flex flex-col sm:grid sm:grid-cols-[1fr_auto_auto] gap-2 sm:gap-[14px] sm:pl-[46px] py-3 border-b border-dashed border-[var(--line)]"
-                    >
+                return (
+                  <div key={m.id} style={merchantCardStyle}>
+                    {/* ヘッダー: ジャンル名 + 予約ボタン */}
+                    <div style={merchantCardHeaderStyle}>
                       <div>
-                        <div style={{ fontWeight: 500 }}>{s.name}</div>
-                        <div style={{ fontSize: 11, color: "var(--ink-mute)", marginTop: 2 }}>
-                          {s.description}
+                        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 2 }}>
+                          {m.category}
+                        </div>
+                        <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 17, fontWeight: 700, color: "#fbfaf6" }}>
+                          {m.name}
                         </div>
                       </div>
-                      <div style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 700 }}>
-                        {yen(s.priceYen)}
-                      </div>
-                      <div
-                        style={{
-                          fontSize: 10,
-                          color: "var(--ink-mute)",
-                          fontFamily: "'JetBrains Mono', monospace",
-                          minWidth: 60,
-                          textAlign: "right",
-                        }}
-                      >
-                        最大 {getMaxPointsByPrice(s.priceYen)} pt
+                      {reservationBtn}
+                    </div>
+
+                    {/* 店舗情報エリア */}
+                    <div style={{ display: "grid", gridTemplateColumns: m.photo1Url ? "140px 1fr" : "1fr", gap: 0 }}>
+                      {/* 写真① */}
+                      {m.photo1Url && (
+                        <div style={{ position: "relative", overflow: "hidden" }}>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={m.photo1Url}
+                            alt={`${m.name} 写真1`}
+                            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", minHeight: 120 }}
+                          />
+                        </div>
+                      )}
+
+                      {/* アクセス / 店休日 / 営業時間 */}
+                      <div style={{ borderBottom: "1px solid var(--line)" }}>
+                        {(m.accessNote || m.address) && (
+                          <div style={infoRowStyle}>
+                            <span style={infoIconStyle}>📍</span>
+                            <div style={{ flex: 1 }}>
+                              <span style={{ fontSize: 13 }}>{m.accessNote || m.address}</span>
+                              {m.mapsUrl && (
+                                <a
+                                  href={m.mapsUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  style={{ marginLeft: 8, fontSize: 11, color: "var(--matcha)", textDecoration: "none" }}
+                                >
+                                  地図を見る ↗
+                                </a>
+                              )}
+                              {!m.mapsUrl && m.address && m.accessNote && (
+                                <a
+                                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(m.address)}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  style={{ marginLeft: 8, fontSize: 11, color: "var(--matcha)", textDecoration: "none" }}
+                                >
+                                  地図を見る ↗
+                                </a>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                        {m.closedDays && (
+                          <div style={infoRowStyle}>
+                            <span style={infoIconStyle}>🗓</span>
+                            <span style={{ fontSize: 13 }}>{m.closedDays}</span>
+                          </div>
+                        )}
+                        {m.businessHours && (
+                          <div style={{ ...infoRowStyle, borderBottom: "none" }}>
+                            <span style={infoIconStyle}>🕐</span>
+                            <span style={{ fontSize: 13 }}>{m.businessHours}</span>
+                          </div>
+                        )}
+                        {!m.accessNote && !m.address && !m.closedDays && !m.businessHours && (
+                          <div style={{ padding: "10px 14px", fontSize: 12, color: "var(--ink-mute)" }}>
+                            店舗情報は準備中です
+                          </div>
+                        )}
                       </div>
                     </div>
-                  ))}
-                </div>
-              ))}
+
+                    {/* サービス + 価格エリア */}
+                    {m.services.length > 0 && (
+                      <div style={{ display: "grid", gridTemplateColumns: m.photo2Url ? "140px 1fr" : "1fr", gap: 0 }}>
+                        {/* 写真② */}
+                        {m.photo2Url && (
+                          <div style={{ overflow: "hidden" }}>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={m.photo2Url}
+                              alt={`${m.name} 写真2`}
+                              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", minHeight: 120 }}
+                            />
+                          </div>
+                        )}
+
+                        {/* サービス価格一覧 */}
+                        <div>
+                          {m.services.map((s, idx) => {
+                            const maxPt = getMaxPointsByPrice(s.priceYen, subsidyPct);
+                            const subsidyYen = maxPt * 1000;
+                            const preferentialYen = s.priceYen - subsidyYen;
+                            return (
+                              <div
+                                key={s.id}
+                                style={{
+                                  padding: "10px 14px",
+                                  borderBottom: idx < m.services.length - 1 ? "1px dashed var(--line)" : "none",
+                                }}
+                              >
+                                <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 6 }}>{s.name}</div>
+                                {s.description && (
+                                  <div style={{ fontSize: 11, color: "var(--ink-mute)", marginBottom: 6 }}>{s.description}</div>
+                                )}
+                                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 6 }}>
+                                  <div style={priceBoxStyle}>
+                                    <div style={priceLabelStyle}>定価</div>
+                                    <div style={priceValueStyle}>{yen(s.priceYen)}</div>
+                                  </div>
+                                  <div style={{ ...priceBoxStyle, background: "var(--matcha)", color: "#fbfaf6" }}>
+                                    <div style={{ ...priceLabelStyle, color: "rgba(255,255,255,0.7)" }}>優待価格</div>
+                                    <div style={{ ...priceValueStyle, color: "#fbfaf6" }}>{yen(preferentialYen)}</div>
+                                  </div>
+                                  <div style={{ ...priceBoxStyle, background: "var(--accent)", color: "#fbfaf6" }}>
+                                    <div style={{ ...priceLabelStyle, color: "rgba(255,255,255,0.7)" }}>補助金額</div>
+                                    <div style={{ ...priceValueStyle, color: "#fbfaf6" }}>
+                                      {yen(subsidyYen)}
+                                      <span style={{ fontSize: 9, marginLeft: 3, opacity: 0.8 }}>({maxPt}pt)</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
             <div
               style={{
@@ -183,7 +254,7 @@ export default async function EmployeePage() {
             >
               <strong style={{ color: "var(--accent)" }}>ご利用の流れ</strong>
               <br />
-              ① 「店舗HPへ」または電話番号から各店舗へ予約・問い合わせ → ② 来店・サービス利用 → ③ 利用後、店舗側でポイントが登録され、利用履歴に反映されます
+              ① 「予約はこちら」または電話番号から各店舗へ予約 → ② 来店・サービス利用 → ③ 利用後、店舗側でポイントが登録され、利用履歴に反映されます
             </div>
           </div>
 
@@ -291,4 +362,71 @@ const pointExpiryStyle: React.CSSProperties = {
   fontSize: 11,
   color: "#888",
   fontFamily: "'JetBrains Mono', monospace",
+};
+
+const merchantCardStyle: React.CSSProperties = {
+  border: "1px solid var(--line)",
+  marginBottom: 16,
+  overflow: "hidden",
+};
+
+const merchantCardHeaderStyle: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  gap: 10,
+  padding: "10px 14px",
+  background: "var(--sumi)",
+};
+
+const reserveBtnStyle: React.CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: 4,
+  background: "var(--accent)",
+  color: "#fbfaf6",
+  padding: "5px 12px",
+  fontSize: 12,
+  fontWeight: 600,
+  textDecoration: "none",
+  borderRadius: 4,
+  whiteSpace: "nowrap",
+  flexShrink: 0,
+};
+
+const infoRowStyle: React.CSSProperties = {
+  display: "flex",
+  alignItems: "flex-start",
+  gap: 8,
+  padding: "8px 14px",
+  borderBottom: "1px solid var(--line)",
+  color: "var(--ink)",
+};
+
+const infoIconStyle: React.CSSProperties = {
+  fontSize: 14,
+  flexShrink: 0,
+  marginTop: 1,
+};
+
+const priceBoxStyle: React.CSSProperties = {
+  background: "var(--bg)",
+  border: "1px solid var(--line)",
+  borderRadius: 4,
+  padding: "6px 8px",
+  textAlign: "center",
+};
+
+const priceLabelStyle: React.CSSProperties = {
+  fontSize: 9,
+  letterSpacing: "0.1em",
+  color: "var(--ink-mute)",
+  marginBottom: 3,
+};
+
+const priceValueStyle: React.CSSProperties = {
+  fontFamily: "'JetBrains Mono', monospace",
+  fontSize: 13,
+  fontWeight: 700,
+  color: "var(--ink)",
 };

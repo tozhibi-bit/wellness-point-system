@@ -1,5 +1,5 @@
 export const POINT_TO_YEN = 1000;
-export const MAX_POINT_RATIO = 0.5;
+export const MAX_POINT_RATIO = 0.5; // デフォルト補助率 (後方互換用)
 
 export function yen(n: number): string {
   return "¥" + Math.round(n).toLocaleString("ja-JP");
@@ -15,8 +15,8 @@ export function getCurrentYearMonth(date: Date = new Date()): string {
   return `${year}-${month}`;
 }
 
-export function getMaxPointsByPrice(priceYen: number): number {
-  return Math.floor((priceYen * MAX_POINT_RATIO) / POINT_TO_YEN);
+export function getMaxPointsByPrice(priceYen: number, subsidyPct: number = 50): number {
+  return Math.floor((priceYen * (subsidyPct / 100)) / POINT_TO_YEN);
 }
 
 export function calculateOwnPayment(priceYen: number, points: number): number {
@@ -26,7 +26,8 @@ export function calculateOwnPayment(priceYen: number, points: number): number {
 export function validatePoints(
   points: number,
   priceYen: number,
-  remainingPoints: number
+  remainingPoints: number,
+  subsidyPct: number = 50
 ): { valid: true } | { valid: false; reason: string } {
   if (!Number.isInteger(points)) {
     return { valid: false, reason: "ポイントは整数で指定してください" };
@@ -34,7 +35,7 @@ export function validatePoints(
   if (points < 0) {
     return { valid: false, reason: "ポイントは0以上で指定してください" };
   }
-  const maxByPrice = getMaxPointsByPrice(priceYen);
+  const maxByPrice = getMaxPointsByPrice(priceYen, subsidyPct);
   if (points > maxByPrice) {
     return {
       valid: false,

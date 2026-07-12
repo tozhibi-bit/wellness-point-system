@@ -2,6 +2,7 @@ import { requireAdmin } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
 import AppHeader from "@/components/shared/app-header";
 import PasswordChangeForm from "@/components/shared/password-change-form";
+import CompanySettingsForm from "@/components/admin/company-settings-form";
 import { styles } from "@/components/shared/styles";
 import Link from "next/link";
 
@@ -18,7 +19,7 @@ export default async function AdminSettingsPage() {
         subBrand="管理者ダッシュボード"
         userMeta={company.name}
       />
-      <main style={{ ...styles.main, maxWidth: 560 }}>
+      <main style={{ ...styles.main, maxWidth: 680 }}>
         <div style={styles.pageHeader}>
           <div>
             <div style={styles.pageTitle}>アカウント設定</div>
@@ -29,6 +30,19 @@ export default async function AdminSettingsPage() {
           </Link>
         </div>
 
+        {/* 福利厚生ポイント設定 */}
+        <div style={{ ...styles.card, marginBottom: 20 }}>
+          <div style={styles.cardTitle}>
+            <span>福利厚生ポイント設定</span>
+            <span style={styles.cardTitleSub}>BENEFIT SETTINGS</span>
+          </div>
+          <CompanySettingsForm
+            initialSubsidyPct={company.subsidyPct}
+            initialMonthlyPoints={company.monthlyPoints}
+          />
+        </div>
+
+        {/* パスワード変更 */}
         <div style={styles.card}>
           <div style={styles.cardTitle}>
             <span>パスワード変更</span>

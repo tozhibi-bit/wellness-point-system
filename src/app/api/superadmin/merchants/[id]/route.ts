@@ -11,6 +11,12 @@ const updateSchema = z.object({
   address: z.string().max(200).optional(),
   phone: z.string().max(20).optional().nullable(),
   websiteUrl: z.string().url().optional().or(z.literal("")),
+  photo1Url: z.string().url().max(500).optional().or(z.literal("")),
+  photo2Url: z.string().url().max(500).optional().or(z.literal("")),
+  accessNote: z.string().max(200).optional().nullable(),
+  mapsUrl: z.string().url().max(500).optional().or(z.literal("")),
+  closedDays: z.string().max(100).optional().nullable(),
+  businessHours: z.string().max(100).optional().nullable(),
   invoiceRegNo: z.string().regex(/^T\d{13}$/),
   newPassword: z.string().min(8).optional(),
 });
@@ -49,6 +55,12 @@ export async function PATCH(
     address: body.address || null,
     phone: body.phone || null,
     websiteUrl: body.websiteUrl || null,
+    photo1Url: body.photo1Url || null,
+    photo2Url: body.photo2Url || null,
+    accessNote: body.accessNote ?? null,
+    mapsUrl: body.mapsUrl || null,
+    closedDays: body.closedDays ?? null,
+    businessHours: body.businessHours ?? null,
     invoiceRegNo: body.invoiceRegNo,
   };
   if (body.newPassword) {

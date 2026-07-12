@@ -8,6 +8,12 @@ const updateSchema = z.object({
   websiteUrl: z.string().url("有効なURLを入力してください").max(500).optional().nullable().or(z.literal("")),
   address: z.string().max(200).optional().nullable(),
   phone: z.string().max(20).optional().nullable(),
+  photo1Url: z.string().url().max(500).optional().nullable().or(z.literal("")),
+  photo2Url: z.string().url().max(500).optional().nullable().or(z.literal("")),
+  accessNote: z.string().max(200).optional().nullable(),
+  mapsUrl: z.string().url().max(500).optional().nullable().or(z.literal("")),
+  closedDays: z.string().max(100).optional().nullable(),
+  businessHours: z.string().max(100).optional().nullable(),
 });
 
 export async function PATCH(req: NextRequest) {
@@ -33,6 +39,12 @@ export async function PATCH(req: NextRequest) {
       websiteUrl: body.websiteUrl || null,
       address: body.address ?? null,
       phone: body.phone ?? null,
+      photo1Url: body.photo1Url || null,
+      photo2Url: body.photo2Url || null,
+      accessNote: body.accessNote ?? null,
+      mapsUrl: body.mapsUrl || null,
+      closedDays: body.closedDays ?? null,
+      businessHours: body.businessHours ?? null,
     },
   });
 

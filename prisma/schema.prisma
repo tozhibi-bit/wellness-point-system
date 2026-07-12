@@ -24,6 +24,7 @@ model Company {
   displayId     String    @unique @map("display_id") // C001 等
   name          String
   monthlyPoints Int       @default(5) @map("monthly_points") // 月次付与pt(可変)
+  subsidyPct    Int       @default(50) @map("subsidy_pct")   // 補助率%(10〜100)
   invoiceEmail  String?   @map("invoice_email")
   createdAt     DateTime  @default(now()) @map("created_at")
   deletedAt     DateTime? @map("deleted_at")
@@ -114,7 +115,13 @@ model Merchant {
   category       String    // ジム/ゴルフ練習場/マッサージ等
   address        String?
   phone          String?   // 電話番号（任意）
-  websiteUrl     String?   @map("website_url") // 店舗HP・予約ページURL(任意)
+  websiteUrl     String?   @map("website_url")   // 店舗HP・予約ページURL(任意)
+  photo1Url      String?   @map("photo1_url")    // 写真①URL
+  photo2Url      String?   @map("photo2_url")    // 写真②URL
+  accessNote     String?   @map("access_note")   // 最寄り駅情報 e.g. 天神駅徒歩3分
+  mapsUrl        String?   @map("maps_url")      // GoogleマップURL
+  closedDays     String?   @map("closed_days")   // 店休日 e.g. 火・水曜定休
+  businessHours  String?   @map("business_hours") // 営業時間 e.g. 10:00-20:00
   invoiceRegNo   String    @map("invoice_reg_no") // 適格請求書登録番号 T+13桁
   isActive       Boolean   @default(true) @map("is_active")
   createdAt      DateTime  @default(now()) @map("created_at")

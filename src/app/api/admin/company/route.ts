@@ -4,18 +4,13 @@ import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
 const updateSchema = z.object({
-  name: z.string().min(1).max(100),
-  monthlyPoints: z.number().int().min(0).max(100),
-  subsidyPct: z.number().int().min(1).max(100).optional(),
-  invoiceEmail: z.string().email().optional().or(z.literal("")),
+  subsidyPct: z.number().int().min(1).max(100),
+  monthlyPoints: z.number().int().min(0).max(200),
 });
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(req: NextRequest) {
   const session = await auth();
-  if (!session?.user || session.user.role !== "superadmin") {
+  if (!session?.user || session.user.role !== "admin") {
     return NextResponse.json({ error: "権限がありません" }, { status: 403 });
   }
 
@@ -29,13 +24,15 @@ export async function PATCH(
     return NextResponse.json({ error: "入力値が不正です" }, { status: 400 });
   }
 
+  if (!session.user.companyId) {
+    return NextResponse.json({ error: "会社情報が見つかりません" }, { status: 400 });
+  }
+
   const company = await prisma.company.update({
-    where: { id: params.id },
+    where: { id: session.user.companyId },
     data: {
-      name: body.name,
-      monthlyPoints: body.monthlyPoints,
       subsidyPct: body.subsidyPct,
-      invoiceEmail: body.invoiceEmail || null,
+      monthlyPoints: body.monthlyPoints,
     },
   });
 

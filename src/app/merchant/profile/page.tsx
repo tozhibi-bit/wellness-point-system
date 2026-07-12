@@ -54,12 +54,18 @@ export default async function MerchantProfilePage() {
         {/* 編集可能な店舗情報 */}
         <div style={{ ...styles.card, marginBottom: 20 }}>
           <div style={styles.cardTitle}>
-            <span>連絡先・URL</span>
+            <span>連絡先・URL・店舗情報</span>
           </div>
           <ProfileForm
             initialWebsiteUrl={merchant.websiteUrl}
             initialAddress={merchant.address ?? ""}
             initialPhone={merchant.phone ?? ""}
+            initialPhoto1Url={merchant.photo1Url}
+            initialPhoto2Url={merchant.photo2Url}
+            initialAccessNote={merchant.accessNote}
+            initialMapsUrl={merchant.mapsUrl}
+            initialClosedDays={merchant.closedDays}
+            initialBusinessHours={merchant.businessHours}
           />
         </div>
 
