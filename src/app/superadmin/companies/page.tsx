@@ -43,6 +43,7 @@ export default async function CompaniesPage() {
               displayId: c.displayId,
               name: c.name,
               monthlyPoints: c.monthlyPoints,
+              subsidyPct: c.subsidyPct,
               invoiceEmail: c.invoiceEmail ?? "",
               employeeCount: c._count.employees,
               adminCount: c._count.adminUsers,

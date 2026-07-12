@@ -12,6 +12,12 @@ interface Merchant {
   address: string;
   phone: string;
   websiteUrl: string | null;
+  photo1Url: string | null;
+  photo2Url: string | null;
+  accessNote: string | null;
+  mapsUrl: string | null;
+  closedDays: string | null;
+  businessHours: string | null;
   invoiceRegNo: string;
   isActive: boolean;
   contractCount: number;
@@ -34,6 +40,12 @@ export default function MerchantManager({ initialMerchants }: { initialMerchants
     address: "",
     phone: "",
     websiteUrl: "",
+    photo1Url: "",
+    photo2Url: "",
+    accessNote: "",
+    mapsUrl: "",
+    closedDays: "",
+    businessHours: "",
     invoiceRegNo: "",
     password: "",
   });
@@ -50,6 +62,12 @@ export default function MerchantManager({ initialMerchants }: { initialMerchants
       address: "",
       phone: "",
       websiteUrl: "",
+      photo1Url: "",
+      photo2Url: "",
+      accessNote: "",
+      mapsUrl: "",
+      closedDays: "",
+      businessHours: "",
       invoiceRegNo: "",
       password: "",
     });
@@ -67,6 +85,12 @@ export default function MerchantManager({ initialMerchants }: { initialMerchants
       address: m.address,
       phone: m.phone,
       websiteUrl: m.websiteUrl ?? "",
+      photo1Url: m.photo1Url ?? "",
+      photo2Url: m.photo2Url ?? "",
+      accessNote: m.accessNote ?? "",
+      mapsUrl: m.mapsUrl ?? "",
+      closedDays: m.closedDays ?? "",
+      businessHours: m.businessHours ?? "",
       invoiceRegNo: m.invoiceRegNo,
       password: "",
     });
@@ -147,6 +171,12 @@ export default function MerchantManager({ initialMerchants }: { initialMerchants
           address: j.merchant.address ?? "",
           phone: j.merchant.phone ?? "",
           websiteUrl: j.merchant.websiteUrl ?? null,
+          photo1Url: j.merchant.photo1Url ?? null,
+          photo2Url: j.merchant.photo2Url ?? null,
+          accessNote: j.merchant.accessNote ?? null,
+          mapsUrl: j.merchant.mapsUrl ?? null,
+          closedDays: j.merchant.closedDays ?? null,
+          businessHours: j.merchant.businessHours ?? null,
           invoiceRegNo: j.merchant.invoiceRegNo,
           isActive: j.merchant.isActive,
           contractCount: isNew ? j.contractCount ?? 0 : merchants.find((m) => m.id === editingId)?.contractCount ?? 0,
@@ -222,17 +252,6 @@ export default function MerchantManager({ initialMerchants }: { initialMerchants
               />
             </Field>
           </div>
-          <div style={{ marginTop: 14 }}>
-            <Field label="店舗HP・予約サイトURL">
-              <input
-                type="url"
-                value={form.websiteUrl}
-                onChange={(e) => setForm({ ...form, websiteUrl: e.target.value })}
-                style={inputStyle}
-                placeholder="https://..."
-              />
-            </Field>
-          </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14, marginTop: 14 }}>
             <Field label="住所">
               <input
@@ -261,6 +280,80 @@ export default function MerchantManager({ initialMerchants }: { initialMerchants
                 placeholder="T1234567890123"
               />
             </Field>
+          </div>
+
+          {/* 店舗情報（従業員マイページ表示用） */}
+          <div style={{ marginTop: 16, paddingTop: 14, borderTop: "1px dashed var(--line-strong)" }}>
+            <div style={{ fontSize: 11, letterSpacing: "0.1em", color: "var(--ink-mute)", textTransform: "uppercase", marginBottom: 12 }}>
+              店舗情報（従業員マイページ表示）
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+              <Field label="店舗HP・予約サイトURL">
+                <input
+                  type="url"
+                  value={form.websiteUrl}
+                  onChange={(e) => setForm({ ...form, websiteUrl: e.target.value })}
+                  style={inputStyle}
+                  placeholder="https://..."
+                />
+              </Field>
+              <Field label="GoogleマップURL">
+                <input
+                  type="url"
+                  value={form.mapsUrl}
+                  onChange={(e) => setForm({ ...form, mapsUrl: e.target.value })}
+                  style={inputStyle}
+                  placeholder="https://maps.google.com/..."
+                />
+              </Field>
+              <Field label="最寄り駅・アクセス">
+                <input
+                  type="text"
+                  value={form.accessNote}
+                  onChange={(e) => setForm({ ...form, accessNote: e.target.value })}
+                  style={inputStyle}
+                  placeholder="天神駅徒歩3分"
+                />
+              </Field>
+              <Field label="店休日">
+                <input
+                  type="text"
+                  value={form.closedDays}
+                  onChange={(e) => setForm({ ...form, closedDays: e.target.value })}
+                  style={inputStyle}
+                  placeholder="火・水曜定休"
+                />
+              </Field>
+              <Field label="営業時間">
+                <input
+                  type="text"
+                  value={form.businessHours}
+                  onChange={(e) => setForm({ ...form, businessHours: e.target.value })}
+                  style={inputStyle}
+                  placeholder="10:00-20:00"
+                />
+              </Field>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginTop: 14 }}>
+              <Field label="写真① URL">
+                <input
+                  type="url"
+                  value={form.photo1Url}
+                  onChange={(e) => setForm({ ...form, photo1Url: e.target.value })}
+                  style={inputStyle}
+                  placeholder="https://..."
+                />
+              </Field>
+              <Field label="写真② URL">
+                <input
+                  type="url"
+                  value={form.photo2Url}
+                  onChange={(e) => setForm({ ...form, photo2Url: e.target.value })}
+                  style={inputStyle}
+                  placeholder="https://..."
+                />
+              </Field>
+            </div>
           </div>
           {editingId === "new" && (
             <div style={{ marginTop: 14 }}>

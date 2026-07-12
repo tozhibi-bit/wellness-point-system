@@ -7,7 +7,8 @@ import bcrypt from "bcryptjs";
 const createSchema = z.object({
   displayId: z.string().regex(/^C\d{3,}$/, "会社IDは C001 形式で入力してください"),
   name: z.string().min(1).max(100),
-  monthlyPoints: z.number().int().min(0).max(100),
+  monthlyPoints: z.number().int().min(0).max(200),
+  subsidyPct: z.number().int().min(1).max(100).optional().default(50),
   invoiceEmail: z.string().email().optional().or(z.literal("")),
   adminEmail: z.string().email("有効なメールを入力してください"),
   adminName: z.string().min(1).max(50),
@@ -49,6 +50,7 @@ export async function POST(req: NextRequest) {
       displayId: body.displayId,
       name: body.name,
       monthlyPoints: body.monthlyPoints,
+      subsidyPct: body.subsidyPct,
       invoiceEmail: body.invoiceEmail || null,
     },
   });

@@ -8,6 +8,7 @@ interface Company {
   displayId: string;
   name: string;
   monthlyPoints: number;
+  subsidyPct: number;
   invoiceEmail: string;
   employeeCount: number;
   adminCount: number;
@@ -21,6 +22,7 @@ export default function CompanyManager({ initialCompanies }: { initialCompanies:
     displayId: "",
     name: "",
     monthlyPoints: 5,
+    subsidyPct: 50,
     invoiceEmail: "",
     adminEmail: "",
     adminName: "",
@@ -35,6 +37,7 @@ export default function CompanyManager({ initialCompanies }: { initialCompanies:
       displayId: nextId,
       name: "",
       monthlyPoints: 5,
+      subsidyPct: 50,
       invoiceEmail: "",
       adminEmail: "",
       adminName: "",
@@ -49,6 +52,7 @@ export default function CompanyManager({ initialCompanies }: { initialCompanies:
       displayId: c.displayId,
       name: c.name,
       monthlyPoints: c.monthlyPoints,
+      subsidyPct: c.subsidyPct,
       invoiceEmail: c.invoiceEmail,
       adminEmail: "",
       adminName: "",
@@ -101,6 +105,7 @@ export default function CompanyManager({ initialCompanies }: { initialCompanies:
         displayId: j.company.displayId,
         name: j.company.name,
         monthlyPoints: j.company.monthlyPoints,
+        subsidyPct: j.company.subsidyPct ?? 50,
         invoiceEmail: j.company.invoiceEmail ?? "",
         employeeCount: 0,
         adminCount: isNew ? 1 : (companies.find((c) => c.id === editingId)?.adminCount ?? 0),
@@ -154,13 +159,24 @@ export default function CompanyManager({ initialCompanies }: { initialCompanies:
                 placeholder="株式会社サンプル"
               />
             </Field>
-            <Field label="月次付与ポイント(全従業員)" required>
+            <Field label="月次付与ポイント / 人" required>
               <input
                 type="number"
                 value={form.monthlyPoints}
                 onChange={(e) => setForm({ ...form, monthlyPoints: parseInt(e.target.value) || 0 })}
                 style={inputStyle}
                 min={0}
+                max={200}
+              />
+            </Field>
+            <Field label="補助率(%)" required>
+              <input
+                type="number"
+                value={form.subsidyPct}
+                onChange={(e) => setForm({ ...form, subsidyPct: Math.min(100, Math.max(1, parseInt(e.target.value) || 50)) })}
+                style={inputStyle}
+                min={1}
+                max={100}
               />
             </Field>
             <Field label="請求書送付先メール">
@@ -232,6 +248,7 @@ export default function CompanyManager({ initialCompanies }: { initialCompanies:
             <th style={thStyle}>会社ID</th>
             <th style={thStyle}>会社名</th>
             <th style={{ ...thStyle, textAlign: "right" }}>月次pt</th>
+            <th style={{ ...thStyle, textAlign: "right" }}>補助率</th>
             <th style={thStyle}>請求先メール</th>
             <th style={{ ...thStyle, textAlign: "right" }}>従業員</th>
             <th style={{ ...thStyle, textAlign: "right" }}>管理者</th>
@@ -243,7 +260,8 @@ export default function CompanyManager({ initialCompanies }: { initialCompanies:
             <tr key={c.id}>
               <td style={{ ...tdStyle, fontFamily: "'JetBrains Mono', monospace" }}>{c.displayId}</td>
               <td style={{ ...tdStyle, fontWeight: 500 }}>{c.name}</td>
-              <td style={{ ...tdStyle, textAlign: "right", fontFamily: "monospace" }}>{c.monthlyPoints}</td>
+              <td style={{ ...tdStyle, textAlign: "right", fontFamily: "monospace" }}>{c.monthlyPoints}pt</td>
+              <td style={{ ...tdStyle, textAlign: "right", fontFamily: "monospace" }}>{c.subsidyPct}%</td>
               <td style={{ ...tdStyle, fontSize: 11, color: "var(--ink-mute)" }}>{c.invoiceEmail || "-"}</td>
               <td style={{ ...tdStyle, textAlign: "right", fontFamily: "monospace" }}>{c.employeeCount}名</td>
               <td style={{ ...tdStyle, textAlign: "right", fontFamily: "monospace" }}>{c.adminCount}名</td>
