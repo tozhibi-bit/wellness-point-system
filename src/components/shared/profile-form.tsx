@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 interface Props {
@@ -164,30 +164,13 @@ export default function ProfileForm({
 
       <SectionLabel>写真URL</SectionLabel>
       <div style={hintStyle} className="mb-3">
-        画像のURLを入力してください（例: Googleドライブの公開リンク、Imgur等）
+        画像そのものへの直リンク（末尾が .jpg / .png 等、または画像が直接開くURL）を入力してください。<br />
+        ※ Googleドライブの「共有リンク」（…/view）はそのままでは表示できません。ImgurやGyazo等の画像直リンクを推奨します。
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-        <div style={fieldStyle}>
-          <label style={labelStyle}>写真① URL</label>
-          <input
-            type="url"
-            value={photo1Url}
-            onChange={(e) => setPhoto1Url(e.target.value)}
-            placeholder="https://..."
-            style={inputStyle}
-          />
-        </div>
-        <div style={fieldStyle}>
-          <label style={labelStyle}>写真② URL</label>
-          <input
-            type="url"
-            value={photo2Url}
-            onChange={(e) => setPhoto2Url(e.target.value)}
-            placeholder="https://..."
-            style={inputStyle}
-          />
-        </div>
+        <PhotoField label="写真① URL" value={photo1Url} onChange={setPhoto1Url} />
+        <PhotoField label="写真② URL" value={photo2Url} onChange={setPhoto2Url} />
       </div>
 
       {message && (
@@ -207,6 +190,65 @@ export default function ProfileForm({
         </button>
       </div>
     </form>
+  );
+}
+
+function PhotoField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const [status, setStatus] = useState<"idle" | "ok" | "err">("idle");
+  const trimmed = value.trim();
+
+  // URLが変わるたびに読み込み状態をリセット
+  useEffect(() => {
+    setStatus("idle");
+  }, [trimmed]);
+
+  return (
+    <div style={fieldStyle}>
+      <label style={labelStyle}>{label}</label>
+      <input
+        type="url"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="https://..."
+        style={inputStyle}
+      />
+      <div style={previewBoxStyle}>
+        {trimmed ? (
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              key={trimmed}
+              src={trimmed}
+              alt="プレビュー"
+              onLoad={() => setStatus("ok")}
+              onError={() => setStatus("err")}
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                display: status === "err" ? "none" : "block",
+              }}
+            />
+            {status === "err" && (
+              <div style={previewErrStyle}>
+                画像を読み込めませんでした。<br />
+                画像への直リンクか確認してください（ドライブの共有リンクは不可）
+              </div>
+            )}
+          </>
+        ) : (
+          <div style={previewEmptyStyle}>URLを入力するとプレビューが表示されます</div>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -252,6 +294,31 @@ const hintStyle: React.CSSProperties = {
   fontSize: 11,
   color: "var(--ink-mute)",
   marginTop: 6,
+  lineHeight: 1.6,
+};
+const previewBoxStyle: React.CSSProperties = {
+  marginTop: 8,
+  width: "100%",
+  height: 140,
+  border: "1px solid var(--line)",
+  borderRadius: 4,
+  overflow: "hidden",
+  background: "var(--bg)",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+};
+const previewEmptyStyle: React.CSSProperties = {
+  fontSize: 11,
+  color: "var(--ink-mute)",
+  textAlign: "center",
+  padding: "0 12px",
+};
+const previewErrStyle: React.CSSProperties = {
+  fontSize: 11,
+  color: "#791f1f",
+  textAlign: "center",
+  padding: "0 12px",
   lineHeight: 1.6,
 };
 const btnAccentStyle: React.CSSProperties = {

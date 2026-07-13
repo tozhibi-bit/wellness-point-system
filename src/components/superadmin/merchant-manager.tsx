@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 interface Merchant {
@@ -343,6 +343,7 @@ export default function MerchantManager({ initialMerchants }: { initialMerchants
                   style={inputStyle}
                   placeholder="https://..."
                 />
+                <PhotoPreview url={form.photo1Url} />
               </Field>
               <Field label="写真② URL">
                 <input
@@ -352,6 +353,7 @@ export default function MerchantManager({ initialMerchants }: { initialMerchants
                   style={inputStyle}
                   placeholder="https://..."
                 />
+                <PhotoPreview url={form.photo2Url} />
               </Field>
             </div>
           </div>
@@ -459,6 +461,55 @@ function Field({ label, required, children }: { label: string; required?: boolea
         {required && <span style={{ color: "var(--accent)", marginLeft: 4 }}>*</span>}
       </label>
       {children}
+    </div>
+  );
+}
+
+function PhotoPreview({ url }: { url: string }) {
+  const [status, setStatus] = useState<"idle" | "ok" | "err">("idle");
+  const trimmed = url.trim();
+
+  useEffect(() => {
+    setStatus("idle");
+  }, [trimmed]);
+
+  if (!trimmed) return null;
+
+  return (
+    <div
+      style={{
+        marginTop: 8,
+        width: "100%",
+        height: 110,
+        border: "1px solid var(--line)",
+        borderRadius: 4,
+        overflow: "hidden",
+        background: "var(--bg)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        key={trimmed}
+        src={trimmed}
+        alt="プレビュー"
+        onLoad={() => setStatus("ok")}
+        onError={() => setStatus("err")}
+        style={{
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          display: status === "err" ? "none" : "block",
+        }}
+      />
+      {status === "err" && (
+        <div style={{ fontSize: 11, color: "#791f1f", textAlign: "center", padding: "0 10px", lineHeight: 1.6 }}>
+          画像を読み込めませんでした。<br />
+          画像への直リンクか確認してください
+        </div>
+      )}
     </div>
   );
 }
