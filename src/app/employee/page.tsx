@@ -61,13 +61,13 @@ export default async function EmployeePage() {
           <div style={pointHeroLabelStyle}>今月の利用可能ポイント</div>
           <div style={pointValueStyle} className="text-[56px] sm:text-[72px]">
             <span>{points.remaining}</span>
-            <span className="text-base sm:text-xl" style={{ color: "#a8a8a8" }}>/ {points.granted} pt</span>
+            <span className="text-base sm:text-xl" style={{ color: "#a8a8a8" }}>/ {points.granted} 回</span>
           </div>
           <div style={pointMeterStyle}>
             <div style={{ ...pointMeterFillStyle, width: `${usagePct}%` }} />
           </div>
           <div style={pointExpiryStyle}>
-            ※ ポイントは月末に失効 — あと{daysLeft}日 / 1pt = 1,000円 / サービス額の{subsidyPct}%まで利用可
+            ※ ポイントは月末に失効します（あと{daysLeft}日）／ サービス額の{subsidyPct}%まで利用できます
           </div>
         </div>
 
@@ -107,11 +107,11 @@ export default async function EmployeePage() {
                     {/* ヘッダー: ジャンル名 + 予約ボタン */}
                     <div style={merchantCardHeaderStyle}>
                       <div>
-                        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 2 }}>
-                          {m.category}
+                        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", letterSpacing: "0.15em", marginBottom: 2 }}>
+                          {m.name}
                         </div>
                         <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 17, fontWeight: 700, color: "#fbfaf6" }}>
-                          {m.name}
+                          {m.category}
                         </div>
                       </div>
                       {reservationBtn}
@@ -227,7 +227,7 @@ export default async function EmployeePage() {
                                     <div style={{ ...priceLabelStyle, color: "rgba(255,255,255,0.7)" }}>補助金額</div>
                                     <div style={{ ...priceValueStyle, color: "#fbfaf6" }}>
                                       {yen(subsidyYen)}
-                                      <span style={{ fontSize: 9, marginLeft: 3, opacity: 0.8 }}>({maxPt}pt)</span>
+                                      <span style={{ fontSize: 9, marginLeft: 3, opacity: 0.8 }}>({maxPt}回)</span>
                                     </div>
                                   </div>
                                 </div>
@@ -274,7 +274,7 @@ export default async function EmployeePage() {
                     <tr>
                       <th style={styles.tableTh}>日付</th>
                       <th style={styles.tableTh}>店舗 / サービス</th>
-                      <th style={{ ...styles.tableTh, textAlign: "right" }}>pt</th>
+                      <th style={{ ...styles.tableTh, textAlign: "right" }}>回</th>
                       <th style={styles.tableTh}>状態</th>
                     </tr>
                   </thead>
@@ -358,10 +358,10 @@ const pointMeterFillStyle: React.CSSProperties = {
 };
 
 const pointExpiryStyle: React.CSSProperties = {
-  marginTop: 12,
-  fontSize: 11,
-  color: "#888",
-  fontFamily: "'JetBrains Mono', monospace",
+  marginTop: 14,
+  fontSize: 13,
+  color: "#d8d3c7",
+  lineHeight: 1.7,
 };
 
 const merchantCardStyle: React.CSSProperties = {
