@@ -5,13 +5,13 @@ import { z } from "zod";
 import { recordAudit } from "@/lib/audit";
 
 const updateSchema = z.object({
-  websiteUrl: z.string().url("有効なURLを入力してください").max(500).optional().nullable().or(z.literal("")),
+  websiteUrl: z.string().url("有効なURLを入力してください").max(2000).optional().nullable().or(z.literal("")),
   address: z.string().max(200).optional().nullable(),
   phone: z.string().max(20).optional().nullable(),
-  photo1Url: z.string().url().max(500).optional().nullable().or(z.literal("")),
-  photo2Url: z.string().url().max(500).optional().nullable().or(z.literal("")),
+  photo1Url: z.string().url().max(2000).optional().nullable().or(z.literal("")),
+  photo2Url: z.string().url().max(2000).optional().nullable().or(z.literal("")),
   accessNote: z.string().max(200).optional().nullable(),
-  mapsUrl: z.string().url().max(500).optional().nullable().or(z.literal("")),
+  mapsUrl: z.string().url().max(2000).optional().nullable().or(z.literal("")),
   closedDays: z.string().max(100).optional().nullable(),
   businessHours: z.string().max(100).optional().nullable(),
 });
