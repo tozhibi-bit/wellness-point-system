@@ -214,7 +214,7 @@ export default async function EmployeePage() {
                                 {s.description && (
                                   <div style={{ fontSize: 11, color: "var(--ink-mute)", marginBottom: 6 }}>{s.description}</div>
                                 )}
-                                <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 6 }}>
+                                <div style={{ display: "grid", gridTemplateColumns: "3fr 7fr", gap: 6 }}>
                                   <div style={priceBoxStyle}>
                                     <div style={priceLabelStyle}>定価</div>
                                     <div style={priceValueStyle}>{yen(s.priceYen)}</div>
