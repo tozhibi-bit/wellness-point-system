@@ -47,7 +47,7 @@ export default function CompanySettingsForm({ initialSubsidyPct, initialMonthlyP
 
   return (
     <form onSubmit={save}>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 20 }}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-5">
         <div>
           <label style={labelStyle}>
             補助率 <span style={{ color: "var(--accent)" }}>*</span>
@@ -103,7 +103,7 @@ export default function CompanySettingsForm({ initialSubsidyPct, initialMonthlyP
         <div style={{ fontWeight: 600, marginBottom: 8, color: "var(--matcha)" }}>
           設定プレビュー（¥10,000のサービスを利用した場合）
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+        <div className="grid grid-cols-3 gap-2.5">
           <div style={previewBoxStyle}>
             <div style={previewLabelStyle}>定価</div>
             <div style={previewValueStyle}>¥{examplePrice.toLocaleString()}</div>

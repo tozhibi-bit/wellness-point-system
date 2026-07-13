@@ -4,7 +4,7 @@ export const styles = {
   main: {
     maxWidth: 1400,
     margin: "0 auto",
-    padding: 32,
+    padding: "clamp(16px, 4vw, 32px)",
   } as CSSProperties,
 
   pageHeader: {
@@ -14,6 +14,8 @@ export const styles = {
     display: "flex",
     alignItems: "flex-end",
     justifyContent: "space-between",
+    flexWrap: "wrap",
+    gap: 12,
   } as CSSProperties,
 
   pageTitle: {
@@ -42,7 +44,7 @@ export const styles = {
   card: {
     background: "var(--bg-panel)",
     border: "1px solid var(--line)",
-    padding: 24,
+    padding: "clamp(16px, 3vw, 24px)",
     boxShadow: "0 1px 0 rgba(0,0,0,0.02), 0 20px 40px -20px rgba(60,40,20,0.08)",
   } as CSSProperties,
 

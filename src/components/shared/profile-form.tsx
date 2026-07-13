@@ -91,7 +91,7 @@ export default function ProfileForm({
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
         <div style={fieldStyle}>
           <label style={labelStyle}>電話番号</label>
           <input
@@ -116,7 +116,7 @@ export default function ProfileForm({
 
       <SectionLabel>アクセス情報</SectionLabel>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
         <div style={fieldStyle}>
           <label style={labelStyle}>最寄り駅・アクセス</label>
           <input
@@ -139,7 +139,7 @@ export default function ProfileForm({
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
         <div style={fieldStyle}>
           <label style={labelStyle}>店休日</label>
           <input
@@ -167,7 +167,7 @@ export default function ProfileForm({
         画像のURLを入力してください（例: Googleドライブの公開リンク、Imgur等）
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
         <div style={fieldStyle}>
           <label style={labelStyle}>写真① URL</label>
           <input

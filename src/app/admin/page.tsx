@@ -144,7 +144,7 @@ export default async function AdminPage({
           </div>
         )}
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 28 }}>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-7">
           <SummaryBox label="従業員数" value={`${employees.filter((e) => e.isActive).length}`} unit="名" />
           <SummaryBox
             label="総利用ポイント"
@@ -157,7 +157,7 @@ export default async function AdminPage({
           <SummaryBox label="提携店舗" value={`${merchants.length}`} unit="店" accent="sumi" />
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 28 }}>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-7">
           <div style={styles.card}>
             <div style={styles.cardTitle}>
               <span>従業員別 利用状況</span>
@@ -240,11 +240,11 @@ export default async function AdminPage({
             <span>全利用明細</span>
             <span style={styles.cardTitleSub}>{yearMonth} · {allTx.length} RECORDS</span>
           </div>
-          <div style={{ maxHeight: 480, overflowY: "auto" }}>
+          <div style={{ maxHeight: 480, overflowY: "auto", overflowX: "auto" }}>
             {allTx.length === 0 ? (
               <div style={styles.empty}>{yearMonth} の明細はありません</div>
             ) : (
-              <table style={styles.table}>
+              <table style={{ ...styles.table, minWidth: 720 }}>
                 <thead>
                   <tr>
                     <th style={styles.tableTh}>日付</th>

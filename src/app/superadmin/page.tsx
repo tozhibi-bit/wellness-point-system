@@ -61,7 +61,7 @@ export default async function SuperAdminPage() {
           <div style={styles.periodLabel}>{yearMonth} 期間</div>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 16, marginBottom: 28 }}>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-7">
           <SummaryBox label="登録企業数" value={`${companies.length}`} unit="社" />
           <SummaryBox label="総従業員数" value={`${totalEmployees}`} unit="名" accent="matcha" />
           <SummaryBox label="登録加盟店数" value={`${merchants}`} unit="店" accent="gold" />
@@ -69,7 +69,7 @@ export default async function SuperAdminPage() {
           <SummaryBox label="今月の総割引額" value={yen(totalSubsidy)} accent="accent" />
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 28 }}>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-7">
           <ActionCard
             title="企業管理"
             description="企業の追加・編集・無効化"
@@ -98,7 +98,8 @@ export default async function SuperAdminPage() {
             <span>企業別 利用状況</span>
             <span style={styles.cardTitleSub}>BY COMPANY · {yearMonth}</span>
           </div>
-          <table style={styles.table}>
+          <div className="overflow-x-auto">
+          <table style={{ ...styles.table, minWidth: 640 }}>
             <thead>
               <tr>
                 <th style={styles.tableTh}>会社ID</th>
@@ -131,6 +132,7 @@ export default async function SuperAdminPage() {
               })}
             </tbody>
           </table>
+          </div>
         </div>
 
         <div style={{ ...styles.card, background: "var(--bg)", border: "1px dashed var(--line-strong)" }}>

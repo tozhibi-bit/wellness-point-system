@@ -56,11 +56,11 @@ export default async function EmployeePage() {
         </div>
 
         {/* ポイントヒーロー（全幅） */}
-        <div style={pointHeroStyle} className="mb-5">
+        <div style={pointHeroStyle} className="mb-5 p-6 sm:p-8">
           <div style={pointHeroLabelStyle}>今月の利用可能ポイント</div>
-          <div style={pointValueStyle}>
+          <div style={pointValueStyle} className="text-[56px] sm:text-[72px]">
             <span>{points.remaining}</span>
-            <span style={{ fontSize: 20, color: "#a8a8a8" }}>/ {points.granted} pt</span>
+            <span className="text-base sm:text-xl" style={{ color: "#a8a8a8" }}>/ {points.granted} pt</span>
           </div>
           <div style={pointMeterStyle}>
             <div style={{ ...pointMeterFillStyle, width: `${usagePct}%` }} />
@@ -117,15 +117,15 @@ export default async function EmployeePage() {
                     </div>
 
                     {/* 店舗情報エリア */}
-                    <div style={{ display: "grid", gridTemplateColumns: m.photo1Url ? "140px 1fr" : "1fr", gap: 0 }}>
+                    <div className={m.photo1Url ? "grid grid-cols-1 sm:grid-cols-[150px_1fr]" : "grid grid-cols-1"}>
                       {/* 写真① */}
                       {m.photo1Url && (
-                        <div style={{ position: "relative", overflow: "hidden" }}>
+                        <div className="relative overflow-hidden h-40 sm:h-auto">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={m.photo1Url}
                             alt={`${m.name} 写真1`}
-                            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", minHeight: 120 }}
+                            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                           />
                         </div>
                       )}
@@ -182,15 +182,15 @@ export default async function EmployeePage() {
 
                     {/* サービス + 価格エリア */}
                     {m.services.length > 0 && (
-                      <div style={{ display: "grid", gridTemplateColumns: m.photo2Url ? "140px 1fr" : "1fr", gap: 0 }}>
+                      <div className={m.photo2Url ? "grid grid-cols-1 sm:grid-cols-[150px_1fr]" : "grid grid-cols-1"}>
                         {/* 写真② */}
                         {m.photo2Url && (
-                          <div style={{ overflow: "hidden" }}>
+                          <div className="overflow-hidden h-40 sm:h-auto">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
                               src={m.photo2Url}
                               alt={`${m.name} 写真2`}
-                              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", minHeight: 120 }}
+                              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                             />
                           </div>
                         )}
@@ -319,7 +319,6 @@ export default async function EmployeePage() {
 const pointHeroStyle: React.CSSProperties = {
   background: "linear-gradient(135deg, var(--sumi) 0%, #1a1a1a 100%)",
   color: "#fbfaf6",
-  padding: 32,
   position: "relative",
   overflow: "hidden",
   border: "1px solid var(--sumi)",
@@ -335,11 +334,11 @@ const pointHeroLabelStyle: React.CSSProperties = {
 
 const pointValueStyle: React.CSSProperties = {
   fontFamily: "'Shippori Mincho', serif",
-  fontSize: 72,
   fontWeight: 700,
   lineHeight: 1,
   display: "flex",
   alignItems: "baseline",
+  flexWrap: "wrap",
   gap: 8,
 };
 
