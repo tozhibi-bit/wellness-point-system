@@ -214,7 +214,7 @@ export default async function EmployeePage() {
                                 {s.description && (
                                   <div style={{ fontSize: 11, color: "var(--ink-mute)", marginBottom: 6 }}>{s.description}</div>
                                 )}
-                                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 6 }}>
+                                <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 6 }}>
                                   <div style={priceBoxStyle}>
                                     <div style={priceLabelStyle}>定価</div>
                                     <div style={priceValueStyle}>{yen(s.priceYen)}</div>
@@ -222,13 +222,6 @@ export default async function EmployeePage() {
                                   <div style={{ ...priceBoxStyle, background: "var(--matcha)", color: "#fbfaf6" }}>
                                     <div style={{ ...priceLabelStyle, color: "rgba(255,255,255,0.7)" }}>優待価格</div>
                                     <div style={{ ...priceValueStyle, color: "#fbfaf6" }}>{yen(preferentialYen)}</div>
-                                  </div>
-                                  <div style={{ ...priceBoxStyle, background: "var(--accent)", color: "#fbfaf6" }}>
-                                    <div style={{ ...priceLabelStyle, color: "rgba(255,255,255,0.7)" }}>補助金額</div>
-                                    <div style={{ ...priceValueStyle, color: "#fbfaf6" }}>
-                                      {yen(subsidyYen)}
-                                      <span style={{ fontSize: 9, marginLeft: 3, opacity: 0.8 }}>({maxPt}回)</span>
-                                    </div>
                                   </div>
                                 </div>
                               </div>
