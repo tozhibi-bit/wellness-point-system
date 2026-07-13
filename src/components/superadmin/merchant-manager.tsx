@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { toDisplayableImageUrl } from "@/lib/image-url";
 
 interface Merchant {
   id: string;
@@ -493,7 +494,7 @@ function PhotoPreview({ url }: { url: string }) {
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         key={trimmed}
-        src={trimmed}
+        src={toDisplayableImageUrl(trimmed)}
         alt="プレビュー"
         onLoad={() => setStatus("ok")}
         onError={() => setStatus("err")}

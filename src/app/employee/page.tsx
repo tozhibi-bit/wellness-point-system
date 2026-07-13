@@ -7,6 +7,7 @@ import {
 } from "@/lib/server/queries";
 import { prisma } from "@/lib/prisma";
 import { yen, getCurrentYearMonth, getMaxPointsByPrice } from "@/lib/points";
+import { toDisplayableImageUrl } from "@/lib/image-url";
 import AppHeader from "@/components/shared/app-header";
 import PasswordChangeForm from "@/components/shared/password-change-form";
 import { styles, badgeStyles, STATUS_LABELS } from "@/components/shared/styles";
@@ -123,7 +124,7 @@ export default async function EmployeePage() {
                         <div className="relative overflow-hidden h-40 sm:h-auto">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
-                            src={m.photo1Url}
+                            src={toDisplayableImageUrl(m.photo1Url)}
                             alt={`${m.name} 写真1`}
                             style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                           />
@@ -188,7 +189,7 @@ export default async function EmployeePage() {
                           <div className="overflow-hidden h-40 sm:h-auto">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
-                              src={m.photo2Url}
+                              src={toDisplayableImageUrl(m.photo2Url)}
                               alt={`${m.name} 写真2`}
                               style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                             />

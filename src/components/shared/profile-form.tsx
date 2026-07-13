@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { toDisplayableImageUrl } from "@/lib/image-url";
 
 interface Props {
   initialWebsiteUrl: string | null;
@@ -164,8 +165,8 @@ export default function ProfileForm({
 
       <SectionLabel>写真URL</SectionLabel>
       <div style={hintStyle} className="mb-3">
-        画像そのものへの直リンク（末尾が .jpg / .png 等、または画像が直接開くURL）を入力してください。<br />
-        ※ Googleドライブの「共有リンク」（…/view）はそのままでは表示できません。ImgurやGyazo等の画像直リンクを推奨します。
+        画像の直リンク（.jpg / .png 等）に加え、<strong>Googleドライブの共有リンク（…/view）も貼り付け可能</strong>です。<br />
+        ※ ドライブの場合は、ファイルを「リンクを知っている全員が閲覧可」に共有設定してください（非公開だと表示されません）。
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
@@ -226,7 +227,7 @@ function PhotoField({
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               key={trimmed}
-              src={trimmed}
+              src={toDisplayableImageUrl(trimmed)}
               alt="プレビュー"
               onLoad={() => setStatus("ok")}
               onError={() => setStatus("err")}
